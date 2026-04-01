@@ -97,10 +97,10 @@ export function summariseIncomeByType(income = {}) {
   const data = normaliseIncome(income);
 
   return {
-    nonSavings: totalNonSavingsIncome(data),
-    savings: totalSavingsIncome(data),
-    dividends: totalDividendIncome(data),
-    capitalGains: totalCapitalGains(data)
+    nonSavings: Object.values(data.nonSavings).reduce((sum, value) => sum + value, 0),
+    savings: Object.values(data.savings).reduce((sum, value) => sum + value, 0),
+    dividends: data.dividends.dividends,
+    capitalGains: data.capitalGains.taxableGains
   };
 }
 
