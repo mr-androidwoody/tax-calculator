@@ -42,7 +42,14 @@ import {
  */
 export function calculateAnnualTax(rawIncome = {}, policy = TAX_POLICY_2026_27) {
   const income = normaliseIncome(rawIncome);
-  const totals = summariseIncomeByType(income);
+  const totals = summariseIncomeByType(rawIncome);
+
+  // DEBUG
+  console.log('ANNUAL TAX DEBUG', {
+    rawIncome,
+    income,
+    totals
+  });
 
   const allowances = resolveIncomeAllowances(totals, policy);
 
