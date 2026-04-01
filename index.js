@@ -1,6 +1,6 @@
-import TAX_POLICY_2026_27 from './tax/policy.js';
-import { calculateAnnualTax } from './tax/annual-tax.js';
-import { calculateHouseholdTax } from './tax/household-tax.js';
+import TAX_POLICY_2026_27 from 'tax/policy.js';
+import { calculateAnnualTax } from 'tax/annual-tax.js';
+import { calculateHouseholdTax } from 'tax/household-tax.js';
 
 function formatCurrency(value) {
   return new Intl.NumberFormat('en-GB', {
