@@ -21,44 +21,72 @@ function appendLine(lines, text = '', indent = 0) {
   lines.push(`${prefix}${text}`);
 }
 
-function assertEqual(actual, expected, label) {
-  if (actual !== expected) {
-    return {
-      pass: false,
-      label,
-      actual,
-      expected,
-      message: `FAIL: ${label} (actual: ${actual}, expected: ${expected})`
-    };
-  }
+function clampToZero(value) {
+  return Math.max(0, toNumber(value));
+}
 
+function hasNaNDeep(value) {
+  if (typeof value === 'number') return Number.isNaN(value);
+  if (Array.isArray(value)) return value.some(hasNaNDeep);
+  if (value && typeof value === 'object') {
+    return Object.values(value).some(hasNaNDeep);
+  }
+  return false;
+}
+
+function safeStringify(value) {
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch (error) {
+    return `[unserialisable: ${error?.message || 'unknown error'}]`;
+  }
+}
+
+function makeAssertion(pass, label, actual, expected, message, meta = {}) {
   return {
-    pass: true,
+    pass: Boolean(pass),
     label,
     actual,
     expected,
-    message: `PASS: ${label}`
+    message,
+    ...meta
   };
 }
 
-function assertClose(actual, expected, label, epsilon = 0.01) {
-  if (Math.abs(toNumber(actual) - toNumber(expected)) > epsilon) {
-    return {
-      pass: false,
-      label,
-      actual,
-      expected,
-      message: `FAIL: ${label} (actual: ${actual}, expected: ${expected})`
-    };
-  }
-
-  return {
-    pass: true,
+function assertEqual(actual, expected, label) {
+  const pass = actual === expected;
+  return makeAssertion(
+    pass,
     label,
     actual,
     expected,
-    message: `PASS: ${label}`
-  };
+    `${pass ? 'PASS' : 'FAIL'}: ${label} (actual: ${actual}, expected: ${expected})`
+  );
+}
+
+function assertClose(actual, expected, label, epsilon = 0.01) {
+  const a = toNumber(actual);
+  const e = toNumber(expected);
+  const pass = Math.abs(a - e) <= epsilon;
+
+  return makeAssertion(
+    pass,
+    label,
+    actual,
+    expected,
+    `${pass ? 'PASS' : 'FAIL'}: ${label} (actual: ${actual}, expected: ${expected})`
+  );
+}
+
+function assertTrue(condition, label, actual, expected = true) {
+  const pass = Boolean(condition);
+  return makeAssertion(
+    pass,
+    label,
+    actual,
+    expected,
+    `${pass ? 'PASS' : 'FAIL'}: ${label} (actual: ${actual}, expected: ${expected})`
+  );
 }
 
 function getAnnualResult(income) {
@@ -89,6 +117,51 @@ function getMarginalBand(result) {
   return String(result?.bandSummary?.marginalIncomeBand || 'none');
 }
 
+function getNetAfterAllTax(result) {
+  return toNumber(
+    result?.totals?.netAfterAllTax ??
+      result?.taxTotals?.netAfterAllTax ??
+      result?.netAfterAllTax
+  );
+}
+
+function getTaxableIncome(result) {
+  return toNumber(
+    result?.totals?.taxableIncome ??
+      result?.incomeTotals?.taxableIncome ??
+      result?.taxableIncome
+  );
+}
+
+function getStartingRateSavingsBandUsed(result) {
+  return toNumber(
+    result?.allowances?.startingRateForSavingsUsed ??
+      result?.allowances?.startingRateSavingsUsed ??
+      result?.allowances?.startingRateUsed
+  );
+}
+
+function getPersonalSavingsAllowanceUsed(result) {
+  return toNumber(
+    result?.allowances?.personalSavingsAllowanceUsed ??
+      result?.allowances?.psaUsed
+  );
+}
+
+function getDividendAllowanceUsed(result) {
+  return toNumber(
+    result?.allowances?.dividendAllowanceUsed
+  );
+}
+
+function getTaxableGains(result) {
+  return toNumber(
+    result?.capitalGains?.taxableGains ??
+      result?.taxTotals?.taxableGains ??
+      result?.totals?.taxableGains
+  );
+}
+
 function logAssertion(assertion) {
   if (assertion.pass) {
     console.log(assertion.message);
@@ -96,7 +169,11 @@ function logAssertion(assertion) {
     console.error(assertion.message, {
       actual: assertion.actual,
       expected: assertion.expected,
-      label: assertion.label
+      label: assertion.label,
+      scenarioId: assertion.scenarioId,
+      scenarioLabel: assertion.scenarioLabel,
+      input: assertion.input,
+      result: assertion.result
     });
   }
 }
@@ -117,6 +194,120 @@ function runAssertions(assertions) {
   };
 }
 
+function withScenarioMeta(assertion, scenario, result) {
+  return {
+    ...assertion,
+    scenarioId: scenario.id,
+    scenarioLabel: scenario.label,
+    input: scenario.income || scenario.people || null,
+    result
+  };
+}
+
+function addDefensiveAssertions(assertions, scenario, result) {
+  const marginalBand = getMarginalBand(result);
+  const totalTax = getTotalTax(result);
+  const incomeTax = getIncomeTax(result);
+  const capitalGainsTax = getCapitalGainsTax(result);
+  const personalAllowance = getPersonalAllowance(result);
+  const netAfterAllTax = getNetAfterAllTax(result);
+
+  assertions.push(
+    withScenarioMeta(
+      assertTrue(totalTax >= 0, `${scenario.label} — total tax never negative`, totalTax, '>= 0'),
+      scenario,
+      result
+    )
+  );
+
+  assertions.push(
+    withScenarioMeta(
+      assertTrue(incomeTax >= 0, `${scenario.label} — income tax never negative`, incomeTax, '>= 0'),
+      scenario,
+      result
+    )
+  );
+
+  assertions.push(
+    withScenarioMeta(
+      assertTrue(
+        capitalGainsTax >= 0,
+        `${scenario.label} — capital gains tax never negative`,
+        capitalGainsTax,
+        '>= 0'
+      ),
+      scenario,
+      result
+    )
+  );
+
+  assertions.push(
+    withScenarioMeta(
+      assertTrue(
+        personalAllowance >= 0,
+        `${scenario.label} — personal allowance never negative`,
+        personalAllowance,
+        '>= 0'
+      ),
+      scenario,
+      result
+    )
+  );
+
+  assertions.push(
+    withScenarioMeta(
+      assertTrue(
+        ['none', 'basic', 'higher', 'additional'].includes(marginalBand),
+        `${scenario.label} — marginal band valid`,
+        marginalBand,
+        'none | basic | higher | additional'
+      ),
+      scenario,
+      result
+    )
+  );
+
+  assertions.push(
+    withScenarioMeta(
+      assertClose(
+        totalTax,
+        incomeTax + capitalGainsTax,
+        `${scenario.label} — total tax equals income tax plus CGT`
+      ),
+      scenario,
+      result
+    )
+  );
+
+  assertions.push(
+    withScenarioMeta(
+      assertTrue(
+        !hasNaNDeep(result),
+        `${scenario.label} — result contains no NaN`,
+        hasNaNDeep(result),
+        false
+      ),
+      scenario,
+      result
+    )
+  );
+
+  if (Number.isFinite(netAfterAllTax)) {
+    assertions.push(
+      withScenarioMeta(
+        assertTrue(
+          netAfterAllTax >= 0,
+          `${scenario.label} — net after all tax not negative`,
+          netAfterAllTax,
+          '>= 0'
+        ),
+        scenario,
+        result
+      )
+    );
+  }
+}
+
 function makeAnnualScenario({
   id,
   label,
@@ -133,54 +324,118 @@ function makeAnnualScenario({
       const assertions = [
         ...(typeof expectations.personalAllowance === 'number'
           ? [
-              assertClose(
-                getPersonalAllowance(result),
-                expectations.personalAllowance,
-                `${label} — personal allowance`
+              withScenarioMeta(
+                assertClose(
+                  getPersonalAllowance(result),
+                  expectations.personalAllowance,
+                  `${label} — personal allowance`
+                ),
+                { id, label, income },
+                result
               )
             ]
           : []),
 
         ...(typeof expectations.incomeTax === 'number'
           ? [
-              assertClose(
-                getIncomeTax(result),
-                expectations.incomeTax,
-                `${label} — income tax`
+              withScenarioMeta(
+                assertClose(
+                  getIncomeTax(result),
+                  expectations.incomeTax,
+                  `${label} — income tax`
+                ),
+                { id, label, income },
+                result
               )
             ]
           : []),
 
         ...(typeof expectations.capitalGainsTax === 'number'
           ? [
-              assertClose(
-                getCapitalGainsTax(result),
-                expectations.capitalGainsTax,
-                `${label} — capital gains tax`
+              withScenarioMeta(
+                assertClose(
+                  getCapitalGainsTax(result),
+                  expectations.capitalGainsTax,
+                  `${label} — capital gains tax`
+                ),
+                { id, label, income },
+                result
               )
             ]
           : []),
 
         ...(typeof expectations.totalTax === 'number'
           ? [
-              assertClose(
-                getTotalTax(result),
-                expectations.totalTax,
-                `${label} — total tax`
+              withScenarioMeta(
+                assertClose(
+                  getTotalTax(result),
+                  expectations.totalTax,
+                  `${label} — total tax`
+                ),
+                { id, label, income },
+                result
               )
             ]
           : []),
 
         ...(typeof expectations.band === 'string'
           ? [
-              assertEqual(
-                getMarginalBand(result),
-                expectations.band,
-                `${label} — marginal band`
+              withScenarioMeta(
+                assertEqual(
+                  getMarginalBand(result),
+                  expectations.band,
+                  `${label} — marginal band`
+                ),
+                { id, label, income },
+                result
+              )
+            ]
+          : []),
+
+        ...(typeof expectations.startingRateUsed === 'number'
+          ? [
+              withScenarioMeta(
+                assertClose(
+                  getStartingRateSavingsBandUsed(result),
+                  expectations.startingRateUsed,
+                  `${label} — starting rate savings used`
+                ),
+                { id, label, income },
+                result
+              )
+            ]
+          : []),
+
+        ...(typeof expectations.personalSavingsAllowanceUsed === 'number'
+          ? [
+              withScenarioMeta(
+                assertClose(
+                  getPersonalSavingsAllowanceUsed(result),
+                  expectations.personalSavingsAllowanceUsed,
+                  `${label} — PSA used`
+                ),
+                { id, label, income },
+                result
+              )
+            ]
+          : []),
+
+        ...(typeof expectations.dividendAllowanceUsed === 'number'
+          ? [
+              withScenarioMeta(
+                assertClose(
+                  getDividendAllowanceUsed(result),
+                  expectations.dividendAllowanceUsed,
+                  `${label} — dividend allowance used`
+                ),
+                { id, label, income },
+                result
               )
             ]
           : [])
       ];
+
+      addDefensiveAssertions(assertions, { id, label, income }, result);
 
       return {
         id,
@@ -234,7 +489,7 @@ function buildAnnualScenarios() {
 
     makeAnnualScenario({
       id: 'annual_4',
-      label: '£100,000 pension → taper begins but PA still full',
+      label: '£100,000 pension → taper starts but PA still full',
       income: { pensionDrawdown: 100000 },
       expectations: {
         personalAllowance: 12570,
@@ -246,6 +501,30 @@ function buildAnnualScenarios() {
 
     makeAnnualScenario({
       id: 'annual_5',
+      label: '£100,001 pension → PA reduced by £0.50',
+      income: { pensionDrawdown: 100001 },
+      expectations: {
+        personalAllowance: 12569.5,
+        incomeTax: 27432.2,
+        totalTax: 27432.2,
+        band: 'higher'
+      }
+    }),
+
+    makeAnnualScenario({
+      id: 'annual_6',
+      label: '£110,000 pension → PA tapered correctly',
+      income: { pensionDrawdown: 110000 },
+      expectations: {
+        personalAllowance: 7570,
+        incomeTax: 31432,
+        totalTax: 31432,
+        band: 'higher'
+      }
+    }),
+
+    makeAnnualScenario({
+      id: 'annual_7',
       label: '£125,140 pension → PA fully gone',
       income: { pensionDrawdown: 125140 },
       expectations: {
@@ -257,7 +536,19 @@ function buildAnnualScenarios() {
     }),
 
     makeAnnualScenario({
-      id: 'annual_6',
+      id: 'annual_8',
+      label: '£125,141 pension → above PA exhaustion boundary',
+      income: { pensionDrawdown: 125141 },
+      expectations: {
+        personalAllowance: 0,
+        incomeTax: 42516.45,
+        totalTax: 42516.45,
+        band: 'additional'
+      }
+    }),
+
+    makeAnnualScenario({
+      id: 'annual_9',
       label: '£5,000 interest only → starting rate applies',
       income: { qmmfInterest: 5000 },
       expectations: {
@@ -269,7 +560,37 @@ function buildAnnualScenarios() {
     }),
 
     makeAnnualScenario({
-      id: 'annual_7',
+      id: 'annual_10',
+      label: 'Starting rate partially reduced',
+      income: {
+        pensionDrawdown: 14570,
+        qmmfInterest: 4000
+      },
+      expectations: {
+        personalAllowance: 12570,
+        incomeTax: 0,
+        totalTax: 0,
+        band: 'basic'
+      }
+    }),
+
+    makeAnnualScenario({
+      id: 'annual_11',
+      label: 'Starting rate fully eliminated',
+      income: {
+        pensionDrawdown: 17570,
+        qmmfInterest: 4000
+      },
+      expectations: {
+        personalAllowance: 12570,
+        incomeTax: 600,
+        totalTax: 600,
+        band: 'basic'
+      }
+    }),
+
+    makeAnnualScenario({
+      id: 'annual_12',
       label: '£12,570 non-savings + £1,000 interest → no starting rate, PSA covers interest',
       income: {
         pensionDrawdown: 12570,
@@ -284,7 +605,7 @@ function buildAnnualScenarios() {
     }),
 
     makeAnnualScenario({
-      id: 'annual_8',
+      id: 'annual_13',
       label: 'Higher-rate PSA case',
       income: {
         pensionDrawdown: 50270,
@@ -299,7 +620,22 @@ function buildAnnualScenarios() {
     }),
 
     makeAnnualScenario({
-      id: 'annual_9',
+      id: 'annual_14',
+      label: 'PSA interaction crossing into higher rate mid-stack',
+      income: {
+        pensionDrawdown: 50000,
+        qmmfInterest: 2000
+      },
+      expectations: {
+        personalAllowance: 12570,
+        incomeTax: 7848,
+        totalTax: 7848,
+        band: 'higher'
+      }
+    }),
+
+    makeAnnualScenario({
+      id: 'annual_15',
       label: 'Additional-rate PSA zero',
       income: {
         pensionDrawdown: 125140,
@@ -314,7 +650,7 @@ function buildAnnualScenarios() {
     }),
 
     makeAnnualScenario({
-      id: 'annual_10',
+      id: 'annual_16',
       label: '£500 dividends within allowance → £0 dividend tax',
       income: {
         pensionDrawdown: 12570,
@@ -324,12 +660,28 @@ function buildAnnualScenarios() {
         personalAllowance: 12570,
         incomeTax: 0,
         totalTax: 0,
-        band: 'none'
+        band: 'none',
+        dividendAllowanceUsed: 500
       }
     }),
 
     makeAnnualScenario({
-      id: 'annual_11',
+      id: 'annual_17',
+      label: '£501 dividends → just above dividend allowance',
+      income: {
+        pensionDrawdown: 12570,
+        dividends: 501
+      },
+      expectations: {
+        personalAllowance: 12570,
+        incomeTax: 0.09,
+        totalTax: 0.09,
+        band: 'basic'
+      }
+    }),
+
+    makeAnnualScenario({
+      id: 'annual_18',
       label: '£6,000 dividends above allowance → taxed at basic dividend rate',
       income: {
         pensionDrawdown: 12570,
@@ -344,7 +696,7 @@ function buildAnnualScenarios() {
     }),
 
     makeAnnualScenario({
-      id: 'annual_12',
+      id: 'annual_19',
       label: 'Dividends correctly stack on top of pension',
       income: {
         pensionDrawdown: 50000,
@@ -359,7 +711,22 @@ function buildAnnualScenarios() {
     }),
 
     makeAnnualScenario({
-      id: 'annual_13',
+      id: 'annual_20',
+      label: 'Dividends in additional-rate zone',
+      income: {
+        pensionDrawdown: 130000,
+        dividends: 10000
+      },
+      expectations: {
+        personalAllowance: 0,
+        incomeTax: 48365,
+        totalTax: 48365,
+        band: 'additional'
+      }
+    }),
+
+    makeAnnualScenario({
+      id: 'annual_21',
       label: 'Mixed income ordering: pension + interest + dividends',
       income: {
         pensionDrawdown: 30000,
@@ -375,8 +742,24 @@ function buildAnnualScenarios() {
     }),
 
     makeAnnualScenario({
-      id: 'annual_14',
-      label: 'CGT below allowance → £0',
+      id: 'annual_22',
+      label: 'Mixed income stress across bands',
+      income: {
+        pensionDrawdown: 60000,
+        qmmfInterest: 8000,
+        dividends: 12000
+      },
+      expectations: {
+        personalAllowance: 12570,
+        incomeTax: 18030.25,
+        totalTax: 18030.25,
+        band: 'higher'
+      }
+    }),
+
+    makeAnnualScenario({
+      id: 'annual_23',
+      label: 'CGT exactly at allowance → £0',
       income: {
         taxableGains: 3000
       },
@@ -390,7 +773,22 @@ function buildAnnualScenarios() {
     }),
 
     makeAnnualScenario({
-      id: 'annual_15',
+      id: 'annual_24',
+      label: 'CGT just above allowance',
+      income: {
+        taxableGains: 3001
+      },
+      expectations: {
+        personalAllowance: 12570,
+        incomeTax: 0,
+        capitalGainsTax: 0.18,
+        totalTax: 0.18,
+        band: 'none'
+      }
+    }),
+
+    makeAnnualScenario({
+      id: 'annual_25',
       label: 'CGT above allowance with no income',
       income: {
         taxableGains: 10000
@@ -405,7 +803,7 @@ function buildAnnualScenarios() {
     }),
 
     makeAnnualScenario({
-      id: 'annual_16',
+      id: 'annual_26',
       label: 'CGT uses remaining basic-rate band correctly',
       income: {
         pensionDrawdown: 50000,
@@ -417,6 +815,86 @@ function buildAnnualScenarios() {
         capitalGainsTax: 1663.8,
         totalTax: 9149.8,
         band: 'basic'
+      }
+    }),
+
+    makeAnnualScenario({
+      id: 'annual_27',
+      label: 'CGT when income fully consumes basic band',
+      income: {
+        pensionDrawdown: 80000,
+        taxableGains: 10000
+      },
+      expectations: {
+        personalAllowance: 12570,
+        incomeTax: 19432,
+        capitalGainsTax: 1680,
+        totalTax: 21112,
+        band: 'higher'
+      }
+    }),
+
+    makeAnnualScenario({
+      id: 'annual_28',
+      label: 'Empty object input',
+      income: {},
+      expectations: {
+        personalAllowance: 12570,
+        incomeTax: 0,
+        capitalGainsTax: 0,
+        totalTax: 0,
+        band: 'none'
+      }
+    }),
+
+    makeAnnualScenario({
+      id: 'annual_29',
+      label: 'Missing fields input',
+      income: {
+        pensionDrawdown: 12000,
+        qmmfInterest: undefined,
+        dividends: undefined,
+        taxableGains: undefined
+      },
+      expectations: {
+        personalAllowance: 12570,
+        incomeTax: 0,
+        totalTax: 0,
+        band: 'none'
+      }
+    }),
+
+    makeAnnualScenario({
+      id: 'annual_30',
+      label: 'Null-heavy input',
+      income: {
+        pensionDrawdown: null,
+        qmmfInterest: null,
+        dividends: null,
+        taxableGains: null
+      },
+      expectations: {
+        personalAllowance: 12570,
+        incomeTax: 0,
+        capitalGainsTax: 0,
+        totalTax: 0,
+        band: 'none'
+      }
+    }),
+
+    makeAnnualScenario({
+      id: 'annual_31',
+      label: 'Negative values clamp or fail cleanly',
+      income: {
+        pensionDrawdown: -1000,
+        qmmfInterest: -250,
+        dividends: -100,
+        taxableGains: -10
+      },
+      expectations: {
+        incomeTax: 0,
+        capitalGainsTax: 0,
+        totalTax: 0
       }
     })
   ];
@@ -471,13 +949,35 @@ function buildHouseholdAssertions() {
       toNumber(householdResult?.household?.bandSummary?.peopleWithHigherRateIncome),
       expectedHigherRatePeople,
       'Household — higher-rate people count is correct'
+    ),
+    assertTrue(
+      toNumber(householdResult?.household?.taxPaid?.totalTax) >= 0,
+      'Household — total tax never negative',
+      householdResult?.household?.taxPaid?.totalTax,
+      '>= 0'
+    ),
+    assertTrue(
+      !hasNaNDeep(householdResult),
+      'Household — result contains no NaN',
+      hasNaNDeep(householdResult),
+      false
     )
   ];
+
+  const scenario = {
+    id: 'household_1',
+    label: 'Household validation',
+    people
+  };
+
+  const decoratedAssertions = assertions.map((assertion) =>
+    withScenarioMeta(assertion, scenario, householdResult)
+  );
 
   return {
     people,
     householdResult,
-    assertions: runAssertions(assertions)
+    assertions: runAssertions(decoratedAssertions)
   };
 }
 
@@ -497,15 +997,61 @@ function buildFullValidationReport() {
   const totalPassed = annualPassed + householdRun.assertions.passed;
   const totalFailed = annualFailed + householdRun.assertions.failed;
 
+  const failedScenarios = [
+    ...annualScenarioRuns
+      .filter((scenario) => scenario.assertions.failed > 0)
+      .map((scenario) => ({
+        type: 'annual',
+        id: scenario.id,
+        label: scenario.label,
+        input: scenario.income,
+        result: scenario.result,
+        failures: scenario.assertions.results.filter((r) => !r.pass)
+      })),
+    ...(householdRun.assertions.failed > 0
+      ? [
+          {
+            type: 'household',
+            id: 'household_1',
+            label: 'Household validation',
+            input: householdRun.people,
+            result: householdRun.householdResult,
+            failures: householdRun.assertions.results.filter((r) => !r.pass)
+          }
+        ]
+      : [])
+  ];
+
   return {
     annualScenarioRuns,
     householdRun,
+    failedScenarios,
     summary: {
       totalPassed,
       totalFailed,
-      totalAssertions: totalPassed + totalFailed
+      totalAssertions: totalPassed + totalFailed,
+      scenariosRun: annualScenarioRuns.length + 1,
+      scenariosFailed: failedScenarios.length
     }
   };
+}
+
+function renderFailureBlock(lines, failedScenario) {
+  appendLine(lines, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+  appendLine(lines, `FAILURE: ${failedScenario.label}`);
+  appendLine(lines, `Scenario ID: ${failedScenario.id}`);
+  appendLine(lines, `Input: ${safeStringify(failedScenario.input)}`);
+
+  failedScenario.failures.forEach((failure, index) => {
+    appendLine(lines, `Failure ${index + 1}: ${failure.label}`, 2);
+    appendLine(lines, `Expected: ${failure.expected}`, 4);
+    appendLine(lines, `Actual: ${failure.actual}`, 4);
+  });
+
+  appendLine(lines, 'Result snapshot:', 2);
+  appendLine(lines, safeStringify(failedScenario.result), 4);
+  appendLine(lines, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+  appendLine(lines);
 }
 
 function renderValidationReport() {
@@ -518,12 +1064,27 @@ function renderValidationReport() {
   appendLine(lines, `Tax policy: ${TAX_POLICY_2026_27.taxYear}`);
   appendLine(lines);
 
-  appendLine(lines, '=== TAX ENGINE VALIDATION ===');
+  appendLine(lines, '=== UK TAX ENGINE ROBUSTNESS VALIDATION ===');
   appendLine(lines);
+  appendLine(lines, `Scenarios run: ${report.summary.scenariosRun}`);
+  appendLine(lines, `Scenarios failed: ${report.summary.scenariosFailed}`);
   appendLine(lines, `Assertions passed: ${report.summary.totalPassed}`);
   appendLine(lines, `Assertions failed: ${report.summary.totalFailed}`);
   appendLine(lines, `Assertions total: ${report.summary.totalAssertions}`);
   appendLine(lines);
+
+  if (report.failedScenarios.length > 0) {
+    appendLine(lines, '=== FAILURES BY SCENARIO ===');
+    appendLine(lines);
+
+    report.failedScenarios.forEach((failedScenario) => {
+      renderFailureBlock(lines, failedScenario);
+    });
+  } else {
+    appendLine(lines, '=== FAILURES BY SCENARIO ===');
+    appendLine(lines, 'None');
+    appendLine(lines);
+  }
 
   appendLine(lines, '=== ANNUAL TAX TESTS ===');
   appendLine(lines);
@@ -593,8 +1154,22 @@ function renderValidationReport() {
 
   outputEl.textContent = lines.join('\n');
 
-  console.group('UK Tax Engine Validation');
+  console.group('UK Tax Engine Robustness Validation');
   console.log(report);
+
+  if (report.failedScenarios.length > 0) {
+    console.group('Failures by scenario');
+    report.failedScenarios.forEach((failedScenario) => {
+      console.error(failedScenario.label, {
+        id: failedScenario.id,
+        input: failedScenario.input,
+        failures: failedScenario.failures,
+        result: failedScenario.result
+      });
+    });
+    console.groupEnd();
+  }
+
   console.groupEnd();
 }
 
