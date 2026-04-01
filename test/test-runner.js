@@ -250,8 +250,8 @@ function buildAnnualScenarios() {
       income: { pensionDrawdown: 125140 },
       expectations: {
         personalAllowance: 0,
-        incomeTax: 37488,
-        totalTax: 37488,
+        incomeTax: 42516,
+        totalTax: 42516,
         band: 'higher'
       }
     }),
@@ -307,8 +307,8 @@ function buildAnnualScenarios() {
       },
       expectations: {
         personalAllowance: 0,
-        incomeTax: 37938,
-        totalTax: 37938,
+        incomeTax: 42966,
+        totalTax: 42966,
         band: 'additional'
       }
     }),
@@ -458,12 +458,12 @@ function buildHouseholdAssertions() {
       'Household — total tax equals sum of individuals'
     ),
     assertClose(
-      toNumber(householdResult?.people?.[0]?.taxTotals?.totalTax),
+      toNumber(householdResult?.people?.[0]?.tax?.taxTotals?.totalTax),
       getTotalTax(p1),
       'Household — person 1 tax matches standalone annual tax'
     ),
     assertClose(
-      toNumber(householdResult?.people?.[1]?.taxTotals?.totalTax),
+      toNumber(householdResult?.people?.[1]?.tax?.taxTotals?.totalTax),
       getTotalTax(p2),
       'Household — person 2 tax matches standalone annual tax'
     ),
@@ -536,37 +536,57 @@ function renderValidationReport() {
       appendLine(lines, assertion.message, 3);
     });
 
-    appendLine(lines, `Resulting Personal Allowance: ${formatCurrency(getPersonalAllowance(scenario.result))}`, 3);
-    appendLine(lines, `Resulting Income Tax: ${formatCurrency(getIncomeTax(scenario.result))}`, 3);
-    appendLine(lines, `Resulting CGT: ${formatCurrency(getCapitalGainsTax(scenario.result))}`, 3);
-    appendLine(lines, `Resulting Total Tax: ${formatCurrency(getTotalTax(scenario.result))}`, 3);
-    appendLine(lines, `Marginal Band: ${getMarginalBand(scenario.result)}`, 3);
+    appendLine(
+      lines,
+      `Resulting Personal Allowance: ${formatCurrency(getPersonalAllowance(scenario.result))}`,
+      3
+    );
+    appendLine(
+      lines,
+      `Resulting Income Tax: ${formatCurrency(getIncomeTax(scenario.result))}`,
+      3
+    );
+    appendLine(
+      lines,
+      `Resulting CGT: ${formatCurrency(getCapitalGainsTax(scenario.result))}`,
+      3
+    );
+    appendLine(
+      lines,
+      `Resulting Total Tax: ${formatCurrency(getTotalTax(scenario.result))}`,
+      3
+    );
+    appendLine(
+      lines,
+      `Marginal Band: ${getMarginalBand(scenario.result)}`,
+      3
+    );
     appendLine(lines);
   });
 
   appendLine(lines, '=== HOUSEHOLD TAX TESTS ===');
   appendLine(lines);
 
-  householdRun.assertions.results.forEach((assertion) => {
+  report.householdRun.assertions.results.forEach((assertion) => {
     appendLine(lines, assertion.message);
   });
 
   appendLine(
     lines,
     `Household Total Tax: ${formatCurrency(
-      householdRun.householdResult?.household?.taxPaid?.totalTax
+      report.householdRun.householdResult?.household?.taxPaid?.totalTax
     )}`
   );
   appendLine(
     lines,
     `Household Net After Tax: ${formatCurrency(
-      householdRun.householdResult?.household?.netAfterAllTax
+      report.householdRun.householdResult?.household?.netAfterAllTax
     )}`
   );
   appendLine(
     lines,
     `Higher Rate People: ${toNumber(
-      householdRun.householdResult?.household?.bandSummary?.peopleWithHigherRateIncome
+      report.householdRun.householdResult?.household?.bandSummary?.peopleWithHigherRateIncome
     )}`
   );
   appendLine(lines);
