@@ -163,9 +163,7 @@ function getTaxableGains(result) {
 }
 
 function logAssertion(assertion) {
-  if (assertion.pass) {
-    console.log(assertion.message);
-  } else {
+  if (!assertion.pass) {
     console.error(assertion.message, {
       actual: assertion.actual,
       expected: assertion.expected,
