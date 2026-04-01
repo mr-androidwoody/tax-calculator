@@ -7,11 +7,28 @@
  * - "usedBasicBand" and "usedHigherBand" refer to prior taxable income
  *   already occupying those bands.
  * - The function taxes the next category in ordering sequence.
+ * - Inputs here are taxable amounts after relevant allowances have already
+ *   been applied upstream.
  */
 
 function positiveNumber(value) {
   const n = Number(value);
   return Number.isFinite(n) ? Math.max(0, n) : 0;
+}
+
+function getBasicRateLimit(policy) {
+  return positiveNumber(policy?.incomeTax?.basicRateLimit);
+}
+
+function getHigherRateLimit(policy) {
+  return positiveNumber(policy?.incomeTax?.higherRateLimit);
+}
+
+function getHigherBandWidth(policy) {
+  const basicRateLimit = getBasicRateLimit(policy);
+  const higherRateLimit = getHigherRateLimit(policy);
+
+  return Math.max(0, higherRateLimit - basicRateLimit);
 }
 
 /**
@@ -47,16 +64,12 @@ export function taxUsingBands(
 
   const basicBandCapacity = Math.max(
     0,
-    policy.incomeTax.basicRateLimit - basicUsed
+    getBasicRateLimit(policy) - basicUsed
   );
-
-  const fullHigherBandWidth =
-    (policy.incomeTax.higherRateLimit - policy.incomeTax.personalAllowance) -
-    policy.incomeTax.basicRateLimit;
 
   const higherBandCapacity = Math.max(
     0,
-    fullHigherBandWidth - higherUsed
+    getHigherBandWidth(policy) - higherUsed
   );
 
   const basicPortion = Math.min(taxableAmount, basicBandCapacity);
@@ -66,9 +79,9 @@ export function taxUsingBands(
   const additionalPortion = Math.max(0, afterBasic - higherPortion);
 
   const tax = (
-    basicPortion * rates.basic +
-    higherPortion * rates.higher +
-    additionalPortion * rates.additional
+    basicPortion * positiveNumber(rates?.basic) +
+    higherPortion * positiveNumber(rates?.higher) +
+    additionalPortion * positiveNumber(rates?.additional)
   );
 
   return {
@@ -173,22 +186,22 @@ export function taxCapitalGains(
   policy
 ) {
   const grossGains = positiveNumber(taxableGains);
-  const exemptAmount = policy.capitalGains.annualExemptAmount;
+  const exemptAmount = positiveNumber(policy?.capitalGains?.annualExemptAmount);
   const exemptUsed = Math.min(grossGains, exemptAmount);
   const gainsAfterExemption = grossGains - exemptUsed;
 
   const taxableIncome = positiveNumber(taxableIncomeBeforeGains);
   const unusedBasicBand = Math.max(
     0,
-    policy.incomeTax.basicRateLimit - Math.min(policy.incomeTax.basicRateLimit, taxableIncome)
+    getBasicRateLimit(policy) - Math.min(getBasicRateLimit(policy), taxableIncome)
   );
 
   const basicRatePortion = Math.min(gainsAfterExemption, unusedBasicBand);
   const higherRatePortion = Math.max(0, gainsAfterExemption - basicRatePortion);
 
   const tax = (
-    basicRatePortion * policy.capitalGains.rates.basic +
-    higherRatePortion * policy.capitalGains.rates.higher
+    basicRatePortion * positiveNumber(policy?.capitalGains?.rates?.basic) +
+    higherRatePortion * positiveNumber(policy?.capitalGains?.rates?.higher)
   );
 
   return {
@@ -205,25 +218,26 @@ export function taxCapitalGains(
 /**
  * Determine top marginal income band occupied by taxable income.
  *
+ * Inputs here are taxable income after allowances.
+ *
  * @param {number} taxableIncome
  * @param {object} policy
  * @returns {'none'|'basic'|'higher'|'additional'}
  */
 export function determineMarginalIncomeBand(taxableIncome, policy) {
   const income = positiveNumber(taxableIncome);
+  const basicRateLimit = getBasicRateLimit(policy);
+  const higherRateLimit = getHigherRateLimit(policy);
 
   if (income <= 0) {
     return 'none';
   }
 
-  if (income <= policy.incomeTax.basicRateLimit) {
+  if (income <= basicRateLimit) {
     return 'basic';
   }
 
-  const higherRateCeiling =
-    policy.incomeTax.higherRateLimit - policy.incomeTax.personalAllowance;
-
-  if (income <= higherRateCeiling) {
+  if (income <= higherRateLimit) {
     return 'higher';
   }
 
