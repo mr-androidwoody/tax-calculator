@@ -61,6 +61,7 @@ export function calculateAnnualTax(rawIncome = {}, policy = TAX_POLICY_2026_27) 
   const taxableDividendsAfterAllowance =
     allowances.dividendAllowance.taxableDividendsAfterAllowance;
 
+  // 1) Tax non-savings first.
   const nonSavingsTax = taxUsingBands(
     {
       amount: taxableNonSavingsAfterPA,
@@ -71,22 +72,32 @@ export function calculateAnnualTax(rawIncome = {}, policy = TAX_POLICY_2026_27) 
     policy
   );
 
+  const nonSavingsEndingBandUsage = {
+    basic: Number(nonSavingsTax?.endingBandUsage?.basic) || 0,
+    higher: Number(nonSavingsTax?.endingBandUsage?.higher) || 0
+  };
+
+  // 2) Tax savings on top of non-savings.
   const savingsTax = taxSavingsIncome(
     {
       amount: taxableSavingsAfterAllowances,
-      usedBasicBand: nonSavingsTax.endingBandUsage.basic,
-      usedHigherBand: nonSavingsTax.endingBandUsage.higher
+      usedBasicBand: nonSavingsEndingBandUsage.basic,
+      usedHigherBand: nonSavingsEndingBandUsage.higher
     },
     policy
   );
 
+  const savingsEndingBandUsage = {
+    basic: Number(savingsTax?.endingBandUsage?.basic) || 0,
+    higher: Number(savingsTax?.endingBandUsage?.higher) || 0
+  };
+
+  // 3) Tax dividends on top of non-savings + savings.
   const dividendsTax = taxDividendIncome(
     {
       amount: taxableDividendsAfterAllowance,
-      usedBasicBand:
-        savingsTax.endingBandUsage.basic,
-      usedHigherBand:
-        savingsTax.endingBandUsage.higher
+      usedBasicBand: savingsEndingBandUsage.basic,
+      usedHigherBand: savingsEndingBandUsage.higher
     },
     policy
   );
@@ -111,8 +122,7 @@ export function calculateAnnualTax(rawIncome = {}, policy = TAX_POLICY_2026_27) 
 
   const totalTax = incomeTaxTotal + cgt.tax;
 
-  const finalTaxableIncome =
-    taxableIncomeBeforeGains;
+  const finalTaxableIncome = taxableIncomeBeforeGains;
 
   const marginalBand = determineMarginalIncomeBand(
     finalTaxableIncome,
