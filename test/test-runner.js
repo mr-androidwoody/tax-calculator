@@ -150,7 +150,7 @@ function getPersonalSavingsAllowanceUsed(result) {
 
 function getDividendAllowanceUsed(result) {
   return toNumber(
-    result?.allowances?.dividendAllowanceUsed
+    result?.allowances?.dividendAllowance?.used
   );
 }
 
@@ -503,8 +503,8 @@ function buildAnnualScenarios() {
       income: { pensionDrawdown: 100001 },
       expectations: {
         personalAllowance: 12569.5,
-        incomeTax: 27432.2,
-        totalTax: 27432.2,
+        incomeTax: 27432.6,
+        totalTax: 27432.6,
         band: 'higher'
       }
     }),
@@ -515,8 +515,8 @@ function buildAnnualScenarios() {
       income: { pensionDrawdown: 110000 },
       expectations: {
         personalAllowance: 7570,
-        incomeTax: 31432,
-        totalTax: 31432,
+        incomeTax: 33432,
+        totalTax: 33432,
         band: 'higher'
       }
     }),
@@ -672,8 +672,8 @@ function buildAnnualScenarios() {
       },
       expectations: {
         personalAllowance: 12570,
-        incomeTax: 0.09,
-        totalTax: 0.09,
+        incomeTax: 0.1075,
+        totalTax: 0.1075,
         band: 'basic'
       }
     }),
@@ -717,8 +717,8 @@ function buildAnnualScenarios() {
       },
       expectations: {
         personalAllowance: 0,
-        incomeTax: 48365,
-        totalTax: 48365,
+        incomeTax: 48441.25,
+        totalTax: 48441.25,
         band: 'additional'
       }
     }),
