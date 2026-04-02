@@ -2,15 +2,21 @@ import { calculateAnnualTax } from '../../tax/annual-tax.js';
 import { calculateHouseholdTax } from '../../tax/household-tax.js';
 
 export function runPlanner(householdInput) {
-  const peopleResults = householdInput.people.map((person) => {
-    const tax = calculateAnnualTax(person.income);
+  const people = Array.isArray(householdInput?.people) ? householdInput.people : [];
+
+  const peopleResults = people.map((person) => {
+    const income = person?.income || {};
+    const tax = calculateAnnualTax(income);
+
     return {
-      ...person,
+      id: String(person?.id || ''),
+      name: String(person?.name || ''),
+      income,
       tax
     };
   });
 
-  const householdResult = calculateHouseholdTax(householdInput);
+  const householdResult = calculateHouseholdTax({ people });
 
   return {
     peopleResults,
