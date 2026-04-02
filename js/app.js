@@ -25,3 +25,6 @@ if (toggleBtn) {
     if (panel) panel.classList.toggle('hidden');
   });
 }
+document.body.addEventListener('click', (event) => {
+  console.log('body click', event.target);
+});
