@@ -1,37 +1,50 @@
-console.log('app loaded');
+import { getHouseholdInput } from './ui/form.js';
+import { runPlanner } from './planner/planner-runner.js';
+import { renderResults } from './ui/results.js';
 
 const runBtn = document.getElementById('runCalculationBtn');
 const sampleBtn = document.getElementById('loadSampleBtn');
 const toggleBtn = document.getElementById('toggleRawJsonBtn');
 
-console.log('buttons found', { runBtn, sampleBtn, toggleBtn });
-
-console.log('before run listener');
 if (runBtn) {
   runBtn.addEventListener('click', () => {
-    console.log('run clicked');
+    const input = getHouseholdInput();
+    const result = runPlanner(input);
+    renderResults(result);
   });
 }
-console.log('after run listener');
 
-console.log('before sample listener');
 if (sampleBtn) {
   sampleBtn.addEventListener('click', () => {
-    console.log('sample clicked');
+    loadSampleCase();
   });
 }
-console.log('after sample listener');
 
-console.log('before toggle listener');
 if (toggleBtn) {
   toggleBtn.addEventListener('click', () => {
-    console.log('toggle clicked');
     const panel = document.getElementById('rawJsonPanel');
-    if (panel) panel.classList.toggle('hidden');
+    if (!panel) return;
+
+    const isHidden = panel.classList.toggle('hidden');
+    toggleBtn.setAttribute('aria-expanded', String(!isHidden));
   });
 }
-console.log('after toggle listener');
 
-document.body.addEventListener('click', (event) => {
-  console.log('body click', event.target);
-});
+function loadSampleCase() {
+  setValue('woodyPensionDrawdown', 40000);
+  setValue('woodyQmmfInterest', 8000);
+  setValue('woodyDividends', 3000);
+  setValue('woodyTaxableGains', 0);
+
+  setValue('heidiEmployment', 15000);
+  setValue('heidiCashInterest', 2000);
+  setValue('heidiDividends', 0);
+  setValue('heidiTaxableGains', 0);
+}
+
+function setValue(id, value) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.value = String(value);
+  }
+}
