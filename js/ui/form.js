@@ -1,46 +1,34 @@
 export function getHouseholdInput() {
   return {
     people: [
-      {
-        id: 'woody',
-        name: 'Woody',
-        income: {
-          statePension: get('woodyStatePension'),
-          dbPension: get('woodyDbPension'),
-          pensionDrawdown: get('woodyPensionDrawdown'),
-          employment: get('woodyEmployment'),
-          selfEmployment: get('woodySelfEmployment'),
-          otherTaxable: get('woodyOtherTaxable'),
-          qmmfInterest: get('woodyQmmfInterest'),
-          cashInterest: get('woodyCashInterest'),
-          otherSavings: get('woodyOtherSavings'),
-          dividends: get('woodyDividends'),
-          taxableGains: get('woodyTaxableGains')
-        }
-      },
-      {
-        id: 'heidi',
-        name: 'Heidi',
-        income: {
-          statePension: get('heidiStatePension'),
-          dbPension: get('heidiDbPension'),
-          pensionDrawdown: get('heidiPensionDrawdown'),
-          employment: get('heidiEmployment'),
-          selfEmployment: get('heidiSelfEmployment'),
-          otherTaxable: get('heidiOtherTaxable'),
-          qmmfInterest: get('heidiQmmfInterest'),
-          cashInterest: get('heidiCashInterest'),
-          otherSavings: get('heidiOtherSavings'),
-          dividends: get('heidiDividends'),
-          taxableGains: get('heidiTaxableGains')
-        }
-      }
+      buildPersonInput('woody', 'Woody'),
+      buildPersonInput('heidi', 'Heidi')
     ]
   };
 }
 
-function get(id) {
+function buildPersonInput(prefix, name) {
+  return {
+    id: prefix,
+    name,
+    income: {
+      statePension: getAmount(`${prefix}StatePension`),
+      dbPension: getAmount(`${prefix}DbPension`),
+      pensionDrawdown: getAmount(`${prefix}PensionDrawdown`),
+      employment: getAmount(`${prefix}Employment`),
+      selfEmployment: getAmount(`${prefix}SelfEmployment`),
+      otherTaxable: getAmount(`${prefix}OtherTaxable`),
+      qmmfInterest: getAmount(`${prefix}QmmfInterest`),
+      cashInterest: getAmount(`${prefix}CashInterest`),
+      otherSavings: getAmount(`${prefix}OtherSavings`),
+      dividends: getAmount(`${prefix}Dividends`),
+      taxableGains: getAmount(`${prefix}TaxableGains`)
+    }
+  };
+}
+
+function getAmount(id) {
   const el = document.getElementById(id);
-  const value = Number(el?.value);
-  return Number.isFinite(value) ? Math.max(0, value) : 0;
+  const raw = Number(el?.value);
+  return Number.isFinite(raw) ? Math.max(0, raw) : 0;
 }

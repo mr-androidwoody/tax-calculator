@@ -1,63 +1,61 @@
-export function renderResults({ peopleResults, householdResult }) {
+export function renderResults({ peopleResults = [], householdResult = null } = {}) {
   renderHousehold(householdResult);
-  renderPerson('woody', peopleResults[0]);
-  renderPerson('heidi', peopleResults[1]);
+  renderPerson('woody', peopleResults[0] || null);
+  renderPerson('heidi', peopleResults[1] || null);
   renderRaw({ peopleResults, householdResult });
 }
 
-// --------------------
-// Household
-// --------------------
-
 function renderHousehold(result) {
   const el = document.getElementById('householdSummaryMetrics');
-  if (!el || !result) return;
+  if (!el) return;
+
+  const household = result?.household || {};
+  const taxPaid = household?.taxPaid || {};
 
   el.innerHTML = `
-    <div class="metric-row"><dt>Gross cash income</dt><dd>${fmt(result?.totals?.grossCashIncome)}</dd></div>
-    <div class="metric-row"><dt>Income tax</dt><dd>${fmt(result?.totals?.incomeTax)}</dd></div>
-    <div class="metric-row"><dt>Capital gains tax</dt><dd>${fmt(result?.totals?.capitalGainsTax)}</dd></div>
-    <div class="metric-row"><dt>Total tax</dt><dd>${fmt(result?.totals?.totalTax)}</dd></div>
-    <div class="metric-row"><dt>Net after all tax</dt><dd>${fmt(result?.totals?.netAfterAllTax)}</dd></div>
+    <div class="metric-row"><dt>Gross cash income</dt><dd>${fmtCurrency(household.grossCashIncome)}</dd></div>
+    <div class="metric-row"><dt>Income tax</dt><dd>${fmtCurrency(taxPaid.incomeTax)}</dd></div>
+    <div class="metric-row"><dt>Capital gains tax</dt><dd>${fmtCurrency(taxPaid.capitalGainsTax)}</dd></div>
+    <div class="metric-row"><dt>Total tax</dt><dd>${fmtCurrency(taxPaid.totalTax)}</dd></div>
+    <div class="metric-row"><dt>Net after all tax</dt><dd>${fmtCurrency(household.netAfterAllTax)}</dd></div>
   `;
 }
 
-// --------------------
-// Person
-// --------------------
-
 function renderPerson(id, person) {
-  if (!person) return;
-
   renderIncomeSummary(id, person);
+  renderAllowances(id, person);
   renderTaxSummary(id, person);
+  renderOutcomeSummary(id, person);
 }
 
-// Keep this minimal for now
 function renderIncomeSummary(id, person) {
   const el = document.getElementById(`${id}IncomeSummary`);
   if (!el) return;
 
-  const income = person?.income || {};
-
-  const nonSavings =
-    (income.statePension || 0) +
-    (income.dbPension || 0) +
-    (income.pensionDrawdown || 0) +
-    (income.employment || 0) +
-    (income.selfEmployment || 0) +
-    (income.otherTaxable || 0);
-
-  const savings =
-    (income.qmmfInterest || 0) +
-    (income.cashInterest || 0) +
-    (income.otherSavings || 0);
+  const grossIncome = person?.tax?.totals?.grossIncome || {};
 
   el.innerHTML = `
-    <div class="metric-row"><dt>Non-savings income</dt><dd>${fmt(nonSavings)}</dd></div>
-    <div class="metric-row"><dt>Savings income</dt><dd>${fmt(savings)}</dd></div>
-    <div class="metric-row"><dt>Dividends</dt><dd>${fmt(income.dividends)}</dd></div>
-    <div class="metric-row"><dt>Capital gains</dt><dd>${fmt(income.taxableGains)}</dd></div>
+    <div class="metric-row"><dt>Non-savings income</dt><dd>${fmtCurrency(grossIncome.nonSavings)}</dd></div>
+    <div class="metric-row"><dt>Savings income</dt><dd>${fmtCurrency(grossIncome.savings)}</dd></div>
+    <div class="metric-row"><dt>Dividends</dt><dd>${fmtCurrency(grossIncome.dividends)}</dd></div>
+    <div class="metric-row"><dt>Capital gains</dt><dd>${fmtCurrency(grossIncome.capitalGains)}</dd></div>
+  `;
+}
+
+function renderAllowances(id, person) {
+  const el = document.getElementById(`${id}Allowances`);
+  if (!el) return;
+
+  const allowances = person?.tax?.allowances || {};
+  const startingRate = allowances?.startingRateForSavings || {};
+  const psa = allowances?.personalSavingsAllowance || {};
+  const dividendAllowance = allowances?.dividendAllowance || {};
+
+  el.innerHTML = `
+    <div class="metric-row"><dt>Personal allowance</dt><dd>${fmtCurrency(allowances.personalAllowance)}</dd></div>
+    <div class="metric-row"><dt>Starting rate used</dt><dd>${fmtCurrency(startingRate.used)}</dd></div>
+    <div class="metric-row"><dt>PSA used</dt><dd>${fmtCurrency(psa.used)}</dd></div>
+    <div class="metric-row"><dt>Dividend allowance used</dt><dd>${fmtCurrency(dividendAllowance.used)}</dd></div>
   `;
 }
 
@@ -65,18 +63,28 @@ function renderTaxSummary(id, person) {
   const el = document.getElementById(`${id}TaxSummary`);
   if (!el) return;
 
-  const tax = person?.tax?.totals || {};
+  const taxTotals = person?.tax?.taxTotals || {};
 
   el.innerHTML = `
-    <div class="metric-row"><dt>Income tax</dt><dd>${fmt(tax.incomeTax)}</dd></div>
-    <div class="metric-row"><dt>CGT</dt><dd>${fmt(tax.capitalGainsTax)}</dd></div>
-    <div class="metric-row"><dt>Total tax</dt><dd>${fmt(tax.totalTax)}</dd></div>
+    <div class="metric-row"><dt>Income tax</dt><dd>${fmtCurrency(taxTotals.incomeTax)}</dd></div>
+    <div class="metric-row"><dt>CGT</dt><dd>${fmtCurrency(taxTotals.capitalGainsTax)}</dd></div>
+    <div class="metric-row"><dt>Total tax</dt><dd>${fmtCurrency(taxTotals.totalTax)}</dd></div>
   `;
 }
 
-// --------------------
-// Raw JSON
-// --------------------
+function renderOutcomeSummary(id, person) {
+  const el = document.getElementById(`${id}OutcomeSummary`);
+  if (!el) return;
+
+  const net = person?.tax?.netIncomeAfterTax || {};
+  const bandSummary = person?.tax?.bandSummary || {};
+
+  el.innerHTML = `
+    <div class="metric-row"><dt>Net after income tax</dt><dd>${fmtCurrency(net.afterIncomeTax)}</dd></div>
+    <div class="metric-row"><dt>Net after all tax</dt><dd>${fmtCurrency(net.afterAllTax)}</dd></div>
+    <div class="metric-row"><dt>Marginal band</dt><dd>${fmtBand(bandSummary.marginalIncomeBand)}</dd></div>
+  `;
+}
 
 function renderRaw(data) {
   const el = document.getElementById('rawJsonOutput');
@@ -85,13 +93,22 @@ function renderRaw(data) {
   el.textContent = JSON.stringify(data, null, 2);
 }
 
-// --------------------
-// Formatter
-// --------------------
-
-function fmt(value) {
+function fmtCurrency(value) {
   return new Intl.NumberFormat('en-GB', {
     style: 'currency',
-    currency: 'GBP'
-  }).format(value || 0);
+    currency: 'GBP',
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 2
+  }).format(toNumber(value));
+}
+
+function fmtBand(value) {
+  const band = String(value || 'none');
+  if (band === 'none') return 'None';
+  return band.charAt(0).toUpperCase() + band.slice(1);
+}
+
+function toNumber(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
 }
