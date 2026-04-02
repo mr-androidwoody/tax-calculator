@@ -165,9 +165,14 @@ export function applySavingsAllowances(
 ) {
   const savingsAfterPA = Math.max(0, Number(taxableSavingsAfterPA) || 0);
 
-  const startingRateBandAvailable = calculateStartingRateForSavingsBand(
-    taxableNonSavingsAfterPA,
-    policy
+  const nonSavingsAbovePA = Math.max(
+    0,
+    (Number(totals?.nonSavings) || 0) - (Number(personalAllowance) || 0)
+  );
+
+  const startingRateBandAvailable = Math.max(
+    0,
+    policy.savings.startingRateLimit - nonSavingsAbovePA
   );
 
   const startingRateUsed = Math.min(savingsAfterPA, startingRateBandAvailable);
