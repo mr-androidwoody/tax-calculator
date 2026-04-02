@@ -1,5 +1,5 @@
 import { getHouseholdInput } from './ui/form.js';
-import { runPlanner } from './planner/planner-runner.js';
+import { runPlanner } from './planner/plan-runner.js';
 import { renderResults } from './ui/results.js';
 
 const runBtn = document.getElementById('runCalculationBtn');
