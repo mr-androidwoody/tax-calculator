@@ -109,12 +109,12 @@ export function calculateStartingRateForSavingsBand(
  */
 export function determineSavingsPSABand(
   taxableNonSavingsAfterPA,
-  taxableSavingsAfterStartingRate,
+  taxableSavingsAfterPA,
   policy
 ) {
   const total = (
     Math.max(0, Number(taxableNonSavingsAfterPA) || 0) +
-    Math.max(0, Number(taxableSavingsAfterStartingRate) || 0)
+    Math.max(0, Number(taxableSavingsAfterPA) || 0)
   );
 
   const basicRateCeiling = policy.incomeTax.basicRateLimit;
@@ -192,7 +192,7 @@ export function applySavingsAllowances(
 
   const psaBand = determineSavingsPSABand(
     nonSavingsTaxableAfterPA,
-    remainingAfterStartingRate,
+    savingsAfterPA,
     policy
   );
 
