@@ -67,9 +67,11 @@ export function taxUsingBands(
     getBasicRateLimit(policy) - basicUsed
   );
 
+  const higherBandWidth = getHigherBandWidth(policy);
+
   const higherBandCapacity = Math.max(
     0,
-    getHigherBandWidth(policy) - higherUsed
+    higherBandWidth - higherUsed
   );
 
   const basicPortion = Math.min(taxableAmount, basicBandCapacity);
@@ -84,6 +86,9 @@ export function taxUsingBands(
     additionalPortion * positiveNumber(rates?.additional)
   );
 
+  const endingBasic = basicUsed + basicPortion;
+  const endingHigher = higherUsed + higherPortion;
+
   return {
     amount: taxableAmount,
     tax,
@@ -91,8 +96,8 @@ export function taxUsingBands(
     higherPortion,
     additionalPortion,
     endingBandUsage: {
-      basic: basicUsed + basicPortion,
-      higher: higherUsed + higherPortion
+      basic: endingBasic,
+      higher: additionalPortion > 0 ? higherBandWidth : endingHigher
     }
   };
 }
