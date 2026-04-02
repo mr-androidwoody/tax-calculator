@@ -1,5 +1,3 @@
-// tax/allowances.js
-
 import { getAdjustedNetIncome } from './classify-income.js';
 
 /**
@@ -21,7 +19,7 @@ export function calculatePersonalAllowance(adjustedNetIncome, policy) {
     return personalAllowance;
   }
 
-  const reduction = Math.floor((ani - personalAllowanceTaperThreshold) / 2);
+  const reduction = (ani - personalAllowanceTaperThreshold) / 2;
   return Math.max(0, personalAllowance - reduction);
 }
 
@@ -105,23 +103,22 @@ export function calculateStartingRateForSavingsBand(
  * after PA, but before dividends.
  *
  * @param {number} taxableNonSavingsAfterPA
- * @param {number} taxableSavingsAfterPA
+ * @param {number} taxableSavingsAfterStartingRate
  * @param {object} policy
  * @returns {'basic'|'higher'|'additional'}
  */
 export function determineSavingsPSABand(
   taxableNonSavingsAfterPA,
-  taxableSavingsAfterPA,
+  taxableSavingsAfterStartingRate,
   policy
 ) {
   const total = (
     Math.max(0, Number(taxableNonSavingsAfterPA) || 0) +
-    Math.max(0, Number(taxableSavingsAfterPA) || 0)
+    Math.max(0, Number(taxableSavingsAfterStartingRate) || 0)
   );
 
   const basicRateCeiling = policy.incomeTax.basicRateLimit;
-  const higherRateCeiling =
-    policy.incomeTax.higherRateLimit - policy.incomeTax.personalAllowance;
+  const higherRateCeiling = policy.incomeTax.higherRateLimit;
 
   if (total <= basicRateCeiling) {
     return 'basic';
@@ -178,7 +175,7 @@ export function applySavingsAllowances(
 
   const psaBand = determineSavingsPSABand(
     taxableNonSavingsAfterPA,
-    savingsAfterPA,
+    remainingAfterStartingRate,
     policy
   );
 
