@@ -3,24 +3,337 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>UK Tax Drawdown Planner — Tax Engine Test</title>
-
-  <link rel="stylesheet" href="css/styles.css" />
+  <title>Tax Engine Integration Harness</title>
+  <link rel="stylesheet" href="./css/style.css" />
 </head>
 <body>
-  <h1>UK Tax Drawdown Planner — Step 1 Tax Engine Test</h1>
+  <div class="page-shell">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">Phase 1 Harness</p>
+        <h1>Tax Engine Integration Harness</h1>
+        <p class="page-intro">
+          Manual browser UI for testing annual personal and household tax outputs
+          before planner integration.
+        </p>
+      </div>
+    </header>
 
-  <p>
-    This page runs a set of hardcoded tax scenarios against the standalone tax engine
-    and prints the results below.
-  </p>
+    <main class="page-content">
+      <section class="panel input-panel dense-input-panel" aria-labelledby="inputsHeading">
+        <div class="panel-header">
+          <h2 id="inputsHeading">Annual inputs</h2>
+          <p>Enter annual taxable amounts for each person. The input cards now use a denser grid so more fields sit above the fold.</p>
+        </div>
 
-  <div class="actions">
-    <button id="runTestsBtn" type="button">Run tax tests</button>
+        <div class="people-grid">
+          <section class="person-card compact-person-card" aria-labelledby="woodyHeading">
+            <div class="person-card-header">
+              <h3 id="woodyHeading">Woody</h3>
+              <p>Person 1</p>
+            </div>
+
+            <div class="field-group compact-field-group">
+              <h4>Non-savings income</h4>
+
+              <label class="field" for="woodyStatePension">
+                <span>State pension</span>
+                <input id="woodyStatePension" name="woodyStatePension" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+
+              <label class="field" for="woodyDbPension">
+                <span>DB pension</span>
+                <input id="woodyDbPension" name="woodyDbPension" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+
+              <label class="field" for="woodyPensionDrawdown">
+                <span>Pension drawdown</span>
+                <input id="woodyPensionDrawdown" name="woodyPensionDrawdown" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+
+              <label class="field" for="woodyEmployment">
+                <span>Employment</span>
+                <input id="woodyEmployment" name="woodyEmployment" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+
+              <label class="field" for="woodySelfEmployment">
+                <span>Self-employment</span>
+                <input id="woodySelfEmployment" name="woodySelfEmployment" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+
+              <label class="field" for="woodyOtherTaxable">
+                <span>Other taxable</span>
+                <input id="woodyOtherTaxable" name="woodyOtherTaxable" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+            </div>
+
+            <div class="field-group compact-field-group">
+              <h4>Savings income</h4>
+
+              <label class="field" for="woodyQmmfInterest">
+                <span>QMMF interest</span>
+                <input id="woodyQmmfInterest" name="woodyQmmfInterest" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+
+              <label class="field" for="woodyCashInterest">
+                <span>Cash interest</span>
+                <input id="woodyCashInterest" name="woodyCashInterest" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+
+              <label class="field" for="woodyOtherSavings">
+                <span>Other savings</span>
+                <input id="woodyOtherSavings" name="woodyOtherSavings" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+            </div>
+
+            <div class="field-group compact-field-group">
+              <h4>Dividends</h4>
+
+              <label class="field" for="woodyDividends">
+                <span>Dividends</span>
+                <input id="woodyDividends" name="woodyDividends" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+            </div>
+
+            <div class="field-group compact-field-group">
+              <h4>Capital gains</h4>
+
+              <label class="field" for="woodyTaxableGains">
+                <span>Taxable gains</span>
+                <input id="woodyTaxableGains" name="woodyTaxableGains" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+            </div>
+          </section>
+
+          <section class="person-card compact-person-card" aria-labelledby="heidiHeading">
+            <div class="person-card-header">
+              <h3 id="heidiHeading">Heidi</h3>
+              <p>Person 2</p>
+            </div>
+
+            <div class="field-group compact-field-group">
+              <h4>Non-savings income</h4>
+
+              <label class="field" for="heidiStatePension">
+                <span>State pension</span>
+                <input id="heidiStatePension" name="heidiStatePension" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+
+              <label class="field" for="heidiDbPension">
+                <span>DB pension</span>
+                <input id="heidiDbPension" name="heidiDbPension" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+
+              <label class="field" for="heidiPensionDrawdown">
+                <span>Pension drawdown</span>
+                <input id="heidiPensionDrawdown" name="heidiPensionDrawdown" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+
+              <label class="field" for="heidiEmployment">
+                <span>Employment</span>
+                <input id="heidiEmployment" name="heidiEmployment" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+
+              <label class="field" for="heidiSelfEmployment">
+                <span>Self-employment</span>
+                <input id="heidiSelfEmployment" name="heidiSelfEmployment" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+
+              <label class="field" for="heidiOtherTaxable">
+                <span>Other taxable</span>
+                <input id="heidiOtherTaxable" name="heidiOtherTaxable" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+            </div>
+
+            <div class="field-group compact-field-group">
+              <h4>Savings income</h4>
+
+              <label class="field" for="heidiQmmfInterest">
+                <span>QMMF interest</span>
+                <input id="heidiQmmfInterest" name="heidiQmmfInterest" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+
+              <label class="field" for="heidiCashInterest">
+                <span>Cash interest</span>
+                <input id="heidiCashInterest" name="heidiCashInterest" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+
+              <label class="field" for="heidiOtherSavings">
+                <span>Other savings</span>
+                <input id="heidiOtherSavings" name="heidiOtherSavings" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+            </div>
+
+            <div class="field-group compact-field-group">
+              <h4>Dividends</h4>
+
+              <label class="field" for="heidiDividends">
+                <span>Dividends</span>
+                <input id="heidiDividends" name="heidiDividends" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+            </div>
+
+            <div class="field-group compact-field-group">
+              <h4>Capital gains</h4>
+
+              <label class="field" for="heidiTaxableGains">
+                <span>Taxable gains</span>
+                <input id="heidiTaxableGains" name="heidiTaxableGains" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="panel action-panel" aria-label="Actions">
+        <div class="button-row">
+          <button id="runCalculationBtn" class="btn btn-primary" type="button">Run tax calculation</button>
+          <button id="loadSampleBtn" class="btn btn-secondary" type="button">Load sample case</button>
+          <button id="toggleRawJsonBtn" class="btn btn-ghost" type="button" aria-expanded="false" aria-controls="rawJsonPanel">
+            Show raw output
+          </button>
+        </div>
+      </section>
+
+      <section class="panel results-panel" aria-labelledby="resultsHeading">
+        <div class="panel-header">
+          <h2 id="resultsHeading">Results</h2>
+          <p>Results render here once the JS harness is wired.</p>
+        </div>
+
+        <div class="results-grid">
+          <section class="result-card summary-card" aria-labelledby="householdSummaryHeading">
+            <div class="result-card-header">
+              <h3 id="householdSummaryHeading">Household summary</h3>
+              <p>Combined view</p>
+            </div>
+
+            <dl class="metric-list" id="householdSummaryMetrics">
+              <div class="metric-row">
+                <dt>Gross cash income</dt>
+                <dd>—</dd>
+              </div>
+              <div class="metric-row">
+                <dt>Income tax</dt>
+                <dd>—</dd>
+              </div>
+              <div class="metric-row">
+                <dt>Capital gains tax</dt>
+                <dd>—</dd>
+              </div>
+              <div class="metric-row">
+                <dt>Total tax</dt>
+                <dd>—</dd>
+              </div>
+              <div class="metric-row">
+                <dt>Net after all tax</dt>
+                <dd>—</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="result-card" aria-labelledby="woodyResultsHeading">
+            <div class="result-card-header">
+              <h3 id="woodyResultsHeading">Woody results</h3>
+              <p>Per-person output</p>
+            </div>
+
+            <div class="result-subsection">
+              <h4>Income summary</h4>
+              <dl class="metric-list" id="woodyIncomeSummary">
+                <div class="metric-row"><dt>Non-savings income</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>Savings income</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>Dividends</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>Capital gains</dt><dd>—</dd></div>
+              </dl>
+            </div>
+
+            <div class="result-subsection">
+              <h4>Allowances</h4>
+              <dl class="metric-list" id="woodyAllowances">
+                <div class="metric-row"><dt>Personal allowance</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>Starting rate used</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>PSA used</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>Dividend allowance used</dt><dd>—</dd></div>
+              </dl>
+            </div>
+
+            <div class="result-subsection">
+              <h4>Tax</h4>
+              <dl class="metric-list" id="woodyTaxSummary">
+                <div class="metric-row"><dt>Income tax</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>CGT</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>Total tax</dt><dd>—</dd></div>
+              </dl>
+            </div>
+
+            <div class="result-subsection">
+              <h4>Outcome</h4>
+              <dl class="metric-list" id="woodyOutcomeSummary">
+                <div class="metric-row"><dt>Net after income tax</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>Net after all tax</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>Marginal band</dt><dd>—</dd></div>
+              </dl>
+            </div>
+          </section>
+
+          <section class="result-card" aria-labelledby="heidiResultsHeading">
+            <div class="result-card-header">
+              <h3 id="heidiResultsHeading">Heidi results</h3>
+              <p>Per-person output</p>
+            </div>
+
+            <div class="result-subsection">
+              <h4>Income summary</h4>
+              <dl class="metric-list" id="heidiIncomeSummary">
+                <div class="metric-row"><dt>Non-savings income</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>Savings income</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>Dividends</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>Capital gains</dt><dd>—</dd></div>
+              </dl>
+            </div>
+
+            <div class="result-subsection">
+              <h4>Allowances</h4>
+              <dl class="metric-list" id="heidiAllowances">
+                <div class="metric-row"><dt>Personal allowance</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>Starting rate used</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>PSA used</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>Dividend allowance used</dt><dd>—</dd></div>
+              </dl>
+            </div>
+
+            <div class="result-subsection">
+              <h4>Tax</h4>
+              <dl class="metric-list" id="heidiTaxSummary">
+                <div class="metric-row"><dt>Income tax</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>CGT</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>Total tax</dt><dd>—</dd></div>
+              </dl>
+            </div>
+
+            <div class="result-subsection">
+              <h4>Outcome</h4>
+              <dl class="metric-list" id="heidiOutcomeSummary">
+                <div class="metric-row"><dt>Net after income tax</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>Net after all tax</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>Marginal band</dt><dd>—</dd></div>
+              </dl>
+            </div>
+          </section>
+        </div>
+
+        <section id="rawJsonPanel" class="raw-json-panel hidden" aria-labelledby="rawJsonHeading">
+          <div class="result-card-header">
+            <h3 id="rawJsonHeading">Raw output</h3>
+            <p>For debugging the full returned structure</p>
+          </div>
+          <pre id="rawJsonOutput">{}</pre>
+        </section>
+      </section>
+    </main>
   </div>
 
-  <pre id="output">Press “Run tax tests”.</pre>
-
-  <script type="module" src="./test/test-runner.js"></script>
+  <script type="module" src="./js/app.js"></script>
 </body>
 </html>
