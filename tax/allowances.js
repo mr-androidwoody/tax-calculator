@@ -161,6 +161,8 @@ export function calculatePersonalSavingsAllowance(psaBand, policy) {
 export function applySavingsAllowances(
   taxableSavingsAfterPA,
   taxableNonSavingsAfterPA,
+  totals,
+  personalAllowance,
   policy
 ) {
   const savingsAfterPA = Math.max(0, Number(taxableSavingsAfterPA) || 0);
@@ -245,6 +247,8 @@ export function resolveIncomeAllowances(totals, policy) {
   const savingsAllowances = applySavingsAllowances(
     paAllocation.taxableAfterPA.savings,
     paAllocation.taxableAfterPA.nonSavings,
+    totals,
+    personalAllowance,
     policy
   );
 
