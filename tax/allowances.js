@@ -166,22 +166,32 @@ export function applySavingsAllowances(
   policy
 ) {
   const savingsAfterPA = Math.max(0, Number(taxableSavingsAfterPA) || 0);
-
-  const nonSavingsAbovePA = Math.max(
+  const nonSavingsTaxableAfterPA = Math.max(
     0,
-    (Number(totals?.nonSavings) || 0) - (Number(personalAllowance) || 0)
+    Number(taxableNonSavingsAfterPA) || 0
   );
 
+  // Starting-rate-for-savings must be reduced by taxable non-savings
+  // income after Personal Allowance has already been allocated.
+  // Do not recompute this from totals - PA, because PA may have been
+  // allocated across income types in statutory order.
   const startingRateBandAvailable = Math.max(
     0,
-    policy.savings.startingRateLimit - nonSavingsAbovePA
+    policy.savings.startingRateLimit - nonSavingsTaxableAfterPA
   );
 
-  const startingRateUsed = Math.min(savingsAfterPA, startingRateBandAvailable);
-  const remainingAfterStartingRate = savingsAfterPA - startingRateUsed;
+  const startingRateUsed = Math.min(
+    savingsAfterPA,
+    startingRateBandAvailable
+  );
+
+  const remainingAfterStartingRate = Math.max(
+    0,
+    savingsAfterPA - startingRateUsed
+  );
 
   const psaBand = determineSavingsPSABand(
-    taxableNonSavingsAfterPA,
+    nonSavingsTaxableAfterPA,
     remainingAfterStartingRate,
     policy
   );
@@ -195,8 +205,10 @@ export function applySavingsAllowances(
     psaBand,
     psaAvailable,
     psaUsed,
-    taxableSavingsAfterAllowances:
+    taxableSavingsAfterAllowances: Math.max(
+      0,
       remainingAfterStartingRate - psaUsed
+    )
   };
 }
 
