@@ -566,8 +566,8 @@ function buildAnnualScenarios() {
       },
       expectations: {
         personalAllowance: 12570,
-        incomeTax: 0,
-        totalTax: 0,
+        incomeTax: 400,  // nsAfterPA=2000 @20%; SR covers 3000 of 4000 interest, PSA covers remaining 1000
+        totalTax: 400,
         band: 'basic'
       }
     }),
@@ -581,8 +581,8 @@ function buildAnnualScenarios() {
       },
       expectations: {
         personalAllowance: 12570,
-        incomeTax: 600,
-        totalTax: 600,
+        incomeTax: 1600,  // nsAfterPA=5000 @20%=1000; SR=0; PSA=1000; savings taxable=3000 @20%=600; total=1600
+        totalTax: 1600,
         band: 'basic'
       }
     }),
@@ -626,8 +626,8 @@ function buildAnnualScenarios() {
       },
       expectations: {
         personalAllowance: 12570,
-        incomeTax: 7848,
-        totalTax: 7848,
+        incomeTax: 8032,  // ns=7486; savings: PSA=500 (higher-rate taxpayer); 270@20%+1230@40%=546; total=8032
+        totalTax: 8032,
         band: 'higher'
       }
     }),
@@ -749,8 +749,8 @@ function buildAnnualScenarios() {
       },
       expectations: {
         personalAllowance: 12570,
-        incomeTax: 18030.25,
-        totalTax: 18030.25,
+        incomeTax: 18543.25,  // ns=11432; savings=3000 (7500@40%); divs=4111.25 (11500@35.75%); all in higher band
+        totalTax: 18543.25,
         band: 'higher'
       }
     }),
