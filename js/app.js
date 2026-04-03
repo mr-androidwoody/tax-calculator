@@ -10,7 +10,11 @@ if (runBtn) {
   runBtn.addEventListener('click', () => {
     const input = getHouseholdInput();
     const result = runPlanner(input);
-    renderResults(result);
+    renderResults({
+      peopleResults: result.tax.peopleResults,
+      householdResult: result.tax.householdResult,
+      planner: result.planner
+    });
   });
 }
 
@@ -31,7 +35,8 @@ if (toggleBtn) {
 }
 
 function loadSampleCase() {
-  setValue('woodyPensionDrawdown', 40000);
+  // Existing income — planner drives pension drawdown, so leave at 0
+  setValue('woodyPensionDrawdown', 0);
   setValue('woodyQmmfInterest', 8000);
   setValue('woodyDividends', 3000);
   setValue('woodyTaxableGains', 0);
@@ -40,6 +45,21 @@ function loadSampleCase() {
   setValue('heidiCashInterest', 2000);
   setValue('heidiDividends', 0);
   setValue('heidiTaxableGains', 0);
+
+  // Planner targets
+  setValue('woodyNetIncomeTarget', 45000);
+  setValue('heidiNetIncomeTarget', 20000);
+
+  // Asset balances
+  setValue('woodyAssetCash', 577000);
+  setValue('woodyAssetPension', 481000);
+  setValue('woodyAssetGia', 154000);
+  setValue('woodyAssetIsa', 274000);
+
+  setValue('heidiAssetCash', 100);
+  setValue('heidiAssetPension', 202000);
+  setValue('heidiAssetGia', 6000);
+  setValue('heidiAssetIsa', 144000);
 }
 
 function setValue(id, value) {
