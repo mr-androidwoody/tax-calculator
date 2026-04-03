@@ -103,6 +103,33 @@
                 <input id="woodyTaxableGains" name="woodyTaxableGains" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
               </label>
             </div>
+            <div class="field-group compact-field-group">
+              <h4>Planner target</h4>
+              <label class="field" for="woodyNetIncomeTarget">
+                <span>Net income target</span>
+                <input id="woodyNetIncomeTarget" name="woodyNetIncomeTarget" type="number" inputmode="decimal" step="1" min="0" value="0" />
+              </label>
+            </div>
+
+            <div class="field-group compact-field-group">
+              <h4>Asset balances</h4>
+              <label class="field" for="woodyAssetCash">
+                <span>Cash / QMMF</span>
+                <input id="woodyAssetCash" name="woodyAssetCash" type="number" inputmode="decimal" step="1" min="0" value="0" />
+              </label>
+              <label class="field" for="woodyAssetPension">
+                <span>Pension</span>
+                <input id="woodyAssetPension" name="woodyAssetPension" type="number" inputmode="decimal" step="1" min="0" value="0" />
+              </label>
+              <label class="field" for="woodyAssetGia">
+                <span>GIA</span>
+                <input id="woodyAssetGia" name="woodyAssetGia" type="number" inputmode="decimal" step="1" min="0" value="0" />
+              </label>
+              <label class="field" for="woodyAssetIsa">
+                <span>ISA (not drawn in Phase 2)</span>
+                <input id="woodyAssetIsa" name="woodyAssetIsa" type="number" inputmode="decimal" step="1" min="0" value="0" />
+              </label>
+            </div>
           </section>
 
           <section class="person-card compact-person-card" aria-labelledby="heidiHeading">
@@ -179,6 +206,33 @@
               <label class="field" for="heidiTaxableGains">
                 <span>Taxable gains</span>
                 <input id="heidiTaxableGains" name="heidiTaxableGains" type="number" inputmode="decimal" step="0.01" min="0" value="0" />
+              </label>
+            </div>
+            <div class="field-group compact-field-group">
+              <h4>Planner target</h4>
+              <label class="field" for="heidiNetIncomeTarget">
+                <span>Net income target</span>
+                <input id="heidiNetIncomeTarget" name="heidiNetIncomeTarget" type="number" inputmode="decimal" step="1" min="0" value="0" />
+              </label>
+            </div>
+
+            <div class="field-group compact-field-group">
+              <h4>Asset balances</h4>
+              <label class="field" for="heidiAssetCash">
+                <span>Cash / QMMF</span>
+                <input id="heidiAssetCash" name="heidiAssetCash" type="number" inputmode="decimal" step="1" min="0" value="0" />
+              </label>
+              <label class="field" for="heidiAssetPension">
+                <span>Pension</span>
+                <input id="heidiAssetPension" name="heidiAssetPension" type="number" inputmode="decimal" step="1" min="0" value="0" />
+              </label>
+              <label class="field" for="heidiAssetGia">
+                <span>GIA</span>
+                <input id="heidiAssetGia" name="heidiAssetGia" type="number" inputmode="decimal" step="1" min="0" value="0" />
+              </label>
+              <label class="field" for="heidiAssetIsa">
+                <span>ISA (not drawn in Phase 2)</span>
+                <input id="heidiAssetIsa" name="heidiAssetIsa" type="number" inputmode="decimal" step="1" min="0" value="0" />
               </label>
             </div>
           </section>
@@ -275,6 +329,15 @@
                 <div class="metric-row"><dt>Marginal band</dt><dd>—</dd></div>
               </dl>
             </div>
+
+            <div class="result-subsection">
+              <h4>Planner</h4>
+              <dl class="metric-list" id="woodyPlannerSummary">
+                <div class="metric-row"><dt>Target net income</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>Achieved net income</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>Shortfall</dt><dd>—</dd></div>
+              </dl>
+            </div>
           </section>
 
           <section class="result-card" aria-labelledby="heidiResultsHeading">
@@ -318,6 +381,15 @@
                 <div class="metric-row"><dt>Net after income tax</dt><dd>—</dd></div>
                 <div class="metric-row"><dt>Net after all tax</dt><dd>—</dd></div>
                 <div class="metric-row"><dt>Marginal band</dt><dd>—</dd></div>
+              </dl>
+            </div>
+
+            <div class="result-subsection">
+              <h4>Planner</h4>
+              <dl class="metric-list" id="heidiPlannerSummary">
+                <div class="metric-row"><dt>Target net income</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>Achieved net income</dt><dd>—</dd></div>
+                <div class="metric-row"><dt>Shortfall</dt><dd>—</dd></div>
               </dl>
             </div>
           </section>
