@@ -23,6 +23,15 @@ function buildPersonInput(prefix, name) {
       otherSavings: getAmount(`${prefix}OtherSavings`),
       dividends: getAmount(`${prefix}Dividends`),
       taxableGains: getAmount(`${prefix}TaxableGains`)
+    },
+    targets: {
+      netIncomeTarget: getAmount(`${prefix}NetIncomeTarget`)
+    },
+    assets: {
+      cash: getAmount(`${prefix}AssetCash`),
+      gia: getAmount(`${prefix}AssetGia`),
+      isa: getAmount(`${prefix}AssetIsa`),
+      pension: getAmount(`${prefix}AssetPension`)
     }
   };
 }

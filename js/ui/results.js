@@ -1,8 +1,12 @@
-export function renderResults({ peopleResults = [], householdResult = null } = {}) {
+export function renderResults({ peopleResults = [], householdResult = null, planner = null } = {}) {
   renderHousehold(householdResult);
   renderPerson('woody', peopleResults[0] || null);
   renderPerson('heidi', peopleResults[1] || null);
-  renderRaw({ peopleResults, householdResult });
+  if (planner) {
+    renderPlannerSummary('woody', planner.people[0] || null);
+    renderPlannerSummary('heidi', planner.people[1] || null);
+  }
+  renderRaw({ peopleResults, householdResult, planner });
 }
 
 function renderHousehold(result) {
@@ -83,6 +87,31 @@ function renderOutcomeSummary(id, person) {
     <div class="metric-row"><dt>Net after income tax</dt><dd>${fmtCurrency(net.afterIncomeTax)}</dd></div>
     <div class="metric-row"><dt>Net after all tax</dt><dd>${fmtCurrency(net.afterAllTax)}</dd></div>
     <div class="metric-row"><dt>Marginal band</dt><dd>${fmtBand(bandSummary.marginalIncomeBand)}</dd></div>
+  `;
+}
+
+function renderPlannerSummary(id, plannerPerson) {
+  const el = document.getElementById(`${id}PlannerSummary`);
+  if (!el || !plannerPerson) return;
+
+  const shortfallRow = plannerPerson.shortfall > 0
+    ? `<div class="metric-row"><dt>Shortfall</dt><dd>${fmtCurrency(plannerPerson.shortfall)}</dd></div>`
+    : `<div class="metric-row"><dt>Shortfall</dt><dd>On target</dd></div>`;
+
+  const ufplsTaxFreeRow = (plannerPerson.generatedIncome?.ufplsTaxFree || 0) > 0
+    ? `<div class="metric-row"><dt>of which tax-free (25%)</dt><dd>${fmtCurrency(plannerPerson.generatedIncome.ufplsTaxFree)}</dd></div>`
+    : '';
+
+  el.innerHTML = `
+    <div class="metric-row"><dt>Target net income</dt><dd>${fmtCurrency(plannerPerson.targetNetIncome)}</dd></div>
+    <div class="metric-row"><dt>Existing net income</dt><dd>${fmtCurrency(plannerPerson.existingNetIncome)}</dd></div>
+    <div class="metric-row"><dt>Achieved net income</dt><dd>${fmtCurrency(plannerPerson.achievedNetIncome)}</dd></div>
+    ${shortfallRow}
+    <div class="metric-row"><dt>— Withdrawals —</dt><dd></dd></div>
+    <div class="metric-row"><dt>Cash / QMMF</dt><dd>${fmtCurrency(plannerPerson.withdrawals?.cash)}</dd></div>
+    <div class="metric-row"><dt>Pension gross (UFPLS)</dt><dd>${fmtCurrency(plannerPerson.withdrawals?.pension)}</dd></div>
+    ${ufplsTaxFreeRow}
+    <div class="metric-row"><dt>GIA dividends</dt><dd>${fmtCurrency(plannerPerson.withdrawals?.gia)}</dd></div>
   `;
 }
 
