@@ -48,12 +48,15 @@ export function initSetup(setupPage, mainApp, tableBody, addBtn, continueBtn, on
     renderTable(tableBody);
   });
 
-  continueBtn?.addEventListener('click', () => {
+  const doContinue = () => {
     if (!validateAccounts()) return;
-    setupPage.style.display  = 'none';
-    mainApp.style.display    = '';
+    setupPage.style.display = 'none';
+    mainApp.style.display   = '';
     onContinue();
-  });
+  };
+  continueBtn?.addEventListener('click', doContinue);
+  // Second continue button in the accounts toolbar
+  document.getElementById('btn-continue-bottom')?.addEventListener('click', doContinue);
 }
 
 // ---------------------------------------------------------------------------
@@ -72,12 +75,11 @@ function renderTable(tbody) {
     const tr = document.createElement('tr');
     tr.dataset.idx = idx;
     tr.innerHTML = `
-      <td><input class="acct-name"    value="${escHtml(acct.name)}"  placeholder="e.g. Vanguard ISA"></td>
+      <td><input class="acct-name" value="${escHtml(acct.name)}" placeholder="e.g. Vanguard ISA"></td>
       <td>${wrapperSelect(acct.wrapper, idx)}</td>
       <td>${ownerSelect(acct.owner, idx)}</td>
-      <td><input class="acct-value"   type="number" min="0" step="1000" value="${acct.value}" data-idx="${idx}"></td>
-      <td>${costBasisCell(acct, idx)}</td>
-      <td>${rateCell(acct, idx)}</td>
+      <td><input class="acct-value" type="number" min="0" step="1000" value="${acct.value}" data-idx="${idx}"></td>
+      <td>${costOrRateCell(acct, idx)}</td>
       <td>${allocCell(acct, idx)}</td>
       <td><button class="btn-delete-acct" data-idx="${idx}" title="Remove">✕</button></td>
     `;
@@ -161,28 +163,27 @@ function ownerSelect(selected, idx) {
   </select>`;
 }
 
-function costBasisCell(acct, idx) {
-  if (acct.wrapper !== 'GIA') return '<span class="acct-na">—</span>';
-  const val = acct.costBasis ?? '';
-  return `<input class="acct-cost" type="number" min="0" step="1000" value="${val}" data-idx="${idx}" placeholder="optional">`;
-}
-
-function rateCell(acct, idx) {
-  if (acct.wrapper !== 'QMMF') return '<span class="acct-na">—</span>';
-  const val = acct.rate ?? '';
-  return `<input class="acct-rate" type="number" min="0" step="0.1" value="${val}" data-idx="${idx}" placeholder="%">`;
+function costOrRateCell(acct, idx) {
+  if (acct.wrapper === 'GIA') {
+    const val = acct.costBasis ?? '';
+    return `<input class="acct-cost" type="number" min="0" step="1000" value="${val}" data-idx="${idx}" placeholder="Cost basis">`;
+  }
+  if (acct.wrapper === 'QMMF') {
+    const val = acct.rate ?? '';
+    return `<input class="acct-rate" type="number" min="0" step="0.1" value="${val}" data-idx="${idx}" placeholder="Rate %">`;
+  }
+  return '<span class="acct-na">—</span>';
 }
 
 function allocCell(acct, idx) {
   if (FIXED_CASH_WRAPPERS.has(acct.wrapper)) {
     return '<span class="acct-na">Cash 100%</span>';
   }
-  return ['equities', 'bonds', 'cashlike'].map(key =>
-    `<label class="alloc-label">${key.slice(0,3)}
-      <input class="acct-alloc" type="number" min="0" max="100" step="5"
-             value="${acct.alloc[key]}" data-idx="${idx}" data-alloc="${key}">
-    </label>`
-  ).join('');
+  return `<div class="alloc-inline">
+    <label>Eq<input class="acct-alloc" type="number" min="0" max="100" step="5" value="${acct.alloc.equities}" data-idx="${idx}" data-alloc="equities"></label>
+    <label>Bd<input class="acct-alloc" type="number" min="0" max="100" step="5" value="${acct.alloc.bonds}"    data-idx="${idx}" data-alloc="bonds"></label>
+    <label>Ca<input class="acct-alloc" type="number" min="0" max="100" step="5" value="${acct.alloc.cashlike}" data-idx="${idx}" data-alloc="cashlike"></label>
+  </div>`;
 }
 
 // ---------------------------------------------------------------------------
