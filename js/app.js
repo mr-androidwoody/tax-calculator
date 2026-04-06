@@ -283,6 +283,12 @@ document.addEventListener('DOMContentLoaded', () => {
       initTabs();
       initToggles();
 
+      // Back to setup
+      document.getElementById('btn-back-to-setup')?.addEventListener('click', () => {
+        document.getElementById('main-app').style.display   = 'none';
+        document.getElementById('setup-page').style.display = '';
+      });
+
       // Run button
       document.getElementById('btn-run')?.addEventListener('click', runProjection);
 
