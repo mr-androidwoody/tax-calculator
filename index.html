@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Retirement Income Planner</title>
+  <title>UK Retirement Tax Calculator</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -12,23 +12,15 @@
 <div id="setup-page" class="planner-shell">
   <header class="planner-hero">
     <div class="planner-hero__copy">
-      <h1>Retirement Income Planner</h1>
+      <h1>UK Retirement Tax Calculator</h1>
       <p>
-        Build and test retirement plans using <a href="#">simulations</a>, <a href="#">historical scenarios</a>, and
-        <a href="#">dynamic spending guardrails</a>. Enter your assumptions and run the model to explore
-        portfolio outcomes, spending sustainability, and how withdrawals adjust over time.
+        Model retirement income across ISA, SIPP, GIA, Cash and QMMF wrappers with full UK income tax,
+        CGT and Starting Rate for Savings. Add your accounts below, then continue to set your assumptions
+        and run the projection.
       </p>
     </div>
-
     <div class="planner-hero__actions">
-      <nav class="planner-steps" aria-label="Planner steps">
-        <button class="planner-step planner-step--active" type="button">Portfolio</button>
-        <span class="planner-step-separator" aria-hidden="true">›</span>
-        <button class="planner-step" type="button">Assumptions</button>
-        <span class="planner-step-separator" aria-hidden="true">›</span>
-        <button class="planner-step" type="button">Results</button>
-      </nav>
-      <button id="btn-continue" class="btn-run-top" type="button">Run simulation</button>
+      <button id="btn-continue" class="btn-run-top" type="button">Continue to calculator →</button>
     </div>
   </header>
 
@@ -37,8 +29,8 @@
       <div class="card-heading">
         <h2>Portfolio setup</h2>
         <p>
-          Add the accounts you hold, their current values, and how they're invested. This forms the foundation of your
-          plan and feeds directly into your assumptions. Once done, continue to refine your ‘Assumptions’.
+          Add the accounts you hold, their current values, and how they're invested. This forms the
+          starting balances for the projection. Once done, continue to set your assumptions.
         </p>
       </div>
 
@@ -46,13 +38,12 @@
         <section class="mini-card people-card">
           <div class="mini-card__header">
             <h3>People</h3>
-            <p>Name the people in this plan and add account information below.</p>
+            <p>The two people in this plan.</p>
           </div>
-
           <div class="person-block">
             <div class="field-group">
               <label for="person1-name">Person 1</label>
-              <input id="person1-name" type="text" value="Bobby">
+              <input id="person1-name" type="text" value="Woody">
             </div>
             <div class="field-group field-group--age">
               <label for="person1-age">Current age</label>
@@ -65,18 +56,15 @@
               </div>
             </div>
           </div>
-
-          <p class="microcopy">Add a second person to include their income, pension and share of the portfolio in the plan.</p>
-
           <div class="person-block person-block--secondary">
             <div class="field-group">
               <label for="person2-name">Person 2</label>
-              <input id="person2-name" type="text" value="Sheila">
+              <input id="person2-name" type="text" value="Heidi">
             </div>
             <div class="field-group field-group--age">
               <label for="person2-age">Current age</label>
               <div class="input-stepper">
-                <input id="person2-age" type="number" value="58">
+                <input id="person2-age" type="number" value="59">
                 <div class="stepper-buttons" aria-hidden="true">
                   <button type="button">+</button>
                   <button type="button">−</button>
@@ -84,14 +72,6 @@
               </div>
             </div>
           </div>
-
-          <label class="switch-row" for="include-person2">
-            <span>Include person 2</span>
-            <span class="switch">
-              <input id="include-person2" type="checkbox" checked>
-              <span class="switch-slider"></span>
-            </span>
-          </label>
         </section>
 
         <section class="mini-card allocation-card">
@@ -100,11 +80,13 @@
             <p>Weighted asset mix across the whole portfolio.</p>
           </div>
           <div class="stat-list">
-            <div class="stat-row"><span>Equities</span><strong>76.0%</strong></div>
-            <div class="stat-row"><span>Bonds</span><strong>18.0%</strong></div>
-            <div class="stat-row"><span>Cashlike</span><strong>6.0%</strong></div>
-            <div class="stat-row"><span>Cash</span><strong>0.0%</strong></div>
-            <div class="stat-row stat-row--success"><span>Total allocation</span><strong>100.0% Balanced</strong></div>
+            <div class="stat-row"><span>Equities</span><strong id="alloc-equities">—</strong></div>
+            <div class="stat-row"><span>Bonds</span><strong id="alloc-bonds">—</strong></div>
+            <div class="stat-row"><span>Cashlike</span><strong id="alloc-cashlike">—</strong></div>
+            <div class="stat-row"><span>Cash</span><strong id="alloc-cash">—</strong></div>
+            <div class="stat-row" id="alloc-total-row">
+              <span>Total allocation</span><strong id="alloc-total">—</strong>
+            </div>
           </div>
         </section>
 
@@ -114,11 +96,11 @@
             <p>How your investments are split by wrapper.</p>
           </div>
           <div class="stat-list">
-            <div class="stat-row"><span>ISA</span><strong>£300,000</strong></div>
-            <div class="stat-row"><span>SIPP / WPP</span><strong>£600,000</strong></div>
-            <div class="stat-row"><span>GIA</span><strong>£100,000</strong></div>
-            <div class="stat-row"><span>Cash</span><strong>£0</strong></div>
-            <div class="stat-row"><span>QMMF</span><strong>£0</strong></div>
+            <div class="stat-row"><span>ISA</span><strong id="wt-ISA">—</strong></div>
+            <div class="stat-row"><span>SIPP</span><strong id="wt-SIPP">—</strong></div>
+            <div class="stat-row"><span>GIA</span><strong id="wt-GIA">—</strong></div>
+            <div class="stat-row"><span>Cash</span><strong id="wt-Cash">—</strong></div>
+            <div class="stat-row"><span>QMMF</span><strong id="wt-QMMF">—</strong></div>
           </div>
         </section>
       </div>
@@ -128,19 +110,18 @@
       <div class="card-toolbar card-toolbar--top">
         <div>
           <h2>Accounts</h2>
-          <p>Add your investment accounts with their wrapper, owner, value and how they're invested.</p>
+          <p>Add your investment accounts — wrapper, owner, value, allocation, and any cost basis or rate.</p>
         </div>
         <div class="portfolio-total-pill">
           <span>Total portfolio</span>
-          <strong>£1,000,000</strong>
+          <strong id="sp-total">—</strong>
         </div>
       </div>
 
       <div class="card-toolbar card-toolbar--actions">
-        <button id="btn-add-account" class="btn-add" type="button">Add account</button>
+        <button id="btn-add-account" class="btn-add" type="button">+ Add account</button>
         <div class="toolbar-actions-right">
-          <button class="btn-primary btn-primary--solid" type="button">Save portfolio</button>
-          <button class="btn-secondary btn-secondary--soft" type="button">Continue to assumptions</button>
+          <button id="btn-continue-bottom" class="btn-secondary btn-secondary--soft" type="button">Continue to calculator →</button>
         </div>
       </div>
 
@@ -152,88 +133,269 @@
               <th>Wrapper</th>
               <th>Owner</th>
               <th class="right">Value (£)</th>
-              <th class="right">Equities %</th>
-              <th class="right">Bonds %</th>
-              <th class="right">Cashlike %</th>
-              <th class="right">Cash %</th>
-              <th>Total</th>
+              <th>Cost basis / Rate</th>
+              <th>Allocation</th>
               <th></th>
             </tr>
           </thead>
-          <tbody id="accounts-tbody">
-            <tr>
-              <td><input type="text" value="SIPP"></td>
-              <td><select><option selected>SIPP / WPP</option></select></td>
-              <td><select><option selected>Bobby</option></select></td>
-              <td><input type="number" value="350000"></td>
-              <td><input type="number" value="60"></td>
-              <td><input type="number" value="30"></td>
-              <td><input type="number" value="10"></td>
-              <td><input type="number" value="0"></td>
-              <td><div class="allocation-status"><strong>100%</strong><span>Ready</span></div></td>
-              <td><button class="btn-delete-acct" type="button">Remove</button></td>
-            </tr>
-            <tr>
-              <td><input type="text" value="SIPP"></td>
-              <td><select><option selected>SIPP / WPP</option></select></td>
-              <td><select><option selected>Sheila</option></select></td>
-              <td><input type="number" value="250000"></td>
-              <td><input type="number" value="60"></td>
-              <td><input type="number" value="30"></td>
-              <td><input type="number" value="10"></td>
-              <td><input type="number" value="0"></td>
-              <td><div class="allocation-status"><strong>100%</strong><span>Ready</span></div></td>
-              <td><button class="btn-delete-acct" type="button">Remove</button></td>
-            </tr>
-            <tr>
-              <td><input type="text" value="Vanguard ISA"></td>
-              <td><select><option selected>ISA</option></select></td>
-              <td><select><option selected>Bobby</option></select></td>
-              <td><input type="number" value="200000"></td>
-              <td><input type="number" value="100"></td>
-              <td><input type="number" value="0"></td>
-              <td><input type="number" value="0"></td>
-              <td><input type="number" value="0"></td>
-              <td><div class="allocation-status"><strong>100%</strong><span>Ready</span></div></td>
-              <td><button class="btn-delete-acct" type="button">Remove</button></td>
-            </tr>
-            <tr>
-              <td><input type="text" value="Vanguard ISA"></td>
-              <td><select><option selected>ISA</option></select></td>
-              <td><select><option selected>Sheila</option></select></td>
-              <td><input type="number" value="100000"></td>
-              <td><input type="number" value="100"></td>
-              <td><input type="number" value="0"></td>
-              <td><input type="number" value="0"></td>
-              <td><input type="number" value="0"></td>
-              <td><div class="allocation-status"><strong>100%</strong><span>Ready</span></div></td>
-              <td><button class="btn-delete-acct" type="button">Remove</button></td>
-            </tr>
-            <tr>
-              <td><input type="text" value="Trading 212"></td>
-              <td><select><option selected>GIA</option></select></td>
-              <td><select><option selected>Bobby</option></select></td>
-              <td><input type="number" value="100000"></td>
-              <td><input type="number" value="100"></td>
-              <td><input type="number" value="0"></td>
-              <td><input type="number" value="0"></td>
-              <td><input type="number" value="0"></td>
-              <td><div class="allocation-status"><strong>100%</strong><span>Ready</span></div></td>
-              <td><button class="btn-delete-acct" type="button">Remove</button></td>
-            </tr>
-          </tbody>
+          <tbody id="accounts-tbody"></tbody>
         </table>
-      </div>
-
-      <div class="accounts-footer">
-        <button class="btn-secondary btn-secondary--danger" type="button">Delete portfolio</button>
       </div>
     </section>
   </section>
 </div>
 
-<div id="main-app" style="display:none"></div>
+<!-- MAIN APP — hidden until Continue -->
+<div id="main-app" style="display:none">
+  <div class="app-layout">
 
-  <script type="module" src="js/app.js"></script>
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>UK Retirement Tax Calculator</h1>
+        <button id="btn-back-to-setup" class="btn-back" type="button">← Portfolio setup</button>
+      </div>
+
+      <div class="section">
+        <div class="section-title">People</div>
+        <div class="two-col">
+          <div class="field"><label>Woody — birth year</label><input type="number" id="woodyDOB" placeholder="1968"></div>
+          <div class="field"><label>Heidi — birth year</label><input type="number" id="heidiDOB" placeholder="1967"></div>
+        </div>
+        <div class="two-col">
+          <div class="field"><label>Start year</label><input type="number" id="startYear" placeholder="2026"></div>
+          <div class="field"><label>End year</label><input type="number" id="endYear" placeholder="2060"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Spending target</div>
+        <div class="field"><label>Annual household spending (£)</label><input type="number" id="spending" placeholder="45000"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Spending step-down at 75</div>
+        <div class="field">
+          <label>Reduction from age 75 (%)</label>
+          <select id="stepDown1Pct">
+            <option value="0">None</option>
+            <option value="10">10%</option>
+            <option value="15" selected>15%</option>
+            <option value="20">20%</option>
+            <option value="25">25%</option>
+            <option value="30">30%</option>
+          </select>
+        </div>
+        <div class="hint">Reduces spending target from Woody's 75th birthday. QMMF draw unaffected.</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Heidi salary (part-time)</div>
+        <div class="two-col">
+          <div class="field"><label>Gross annual (£)</label><input type="number" id="heidiSalary" placeholder="15000"></div>
+          <div class="field"><label>Stop age</label><input type="number" id="heidiSalaryStopAge" placeholder="63"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">State pension</div>
+        <div class="subsection">Woody</div>
+        <div class="two-col">
+          <div class="field"><label>Start age</label><input type="number" id="woodySPAge" placeholder="67"></div>
+          <div class="field"><label>Annual (£)</label><input type="number" id="woodySP" placeholder="12000"></div>
+        </div>
+        <div class="subsection">Heidi</div>
+        <div class="two-col">
+          <div class="field"><label>Start age</label><input type="number" id="heidiSPAge" placeholder="67"></div>
+          <div class="field"><label>Annual (£)</label><input type="number" id="heidiSP" placeholder="12547"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Cash holdings</div>
+        <div class="two-col">
+          <div class="field"><label>Woody (£)</label><input type="number" id="woodyCash" placeholder="70000"></div>
+          <div class="field"><label>Heidi (£)</label><input type="number" id="heidiCash" placeholder="0"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">QMMF — Woody</div>
+        <div class="two-col">
+          <div class="field"><label>Balance (£)</label><input type="number" id="woodyQMMF" placeholder="450000"></div>
+          <div class="field"><label>Annual rate (%)</label><input type="number" id="qmmfRate" placeholder="3.8" step="0.01"></div>
+        </div>
+        <div class="field" style="margin-top:6px">
+          <label>Fixed monthly draw (£/month)</label>
+          <input type="number" id="qmmfMonthlyDraw" placeholder="1333">
+        </div>
+        <div class="hint">Interest drawn first; principal only if interest insufficient.</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">SIPP balances</div>
+        <div class="two-col">
+          <div class="field"><label>Woody (£)</label><input type="number" id="woodySIPP" placeholder="450000"></div>
+          <div class="field"><label>Heidi (£)</label><input type="number" id="heidiSIPP" placeholder="200000"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">ISA balances</div>
+        <div class="two-col">
+          <div class="field"><label>Woody (£)</label><input type="number" id="woodyISA" placeholder="250000"></div>
+          <div class="field"><label>Heidi (£)</label><input type="number" id="heidiISA" placeholder="150000"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">GIA balances</div>
+        <div class="two-col">
+          <div class="field"><label>Woody (£)</label><input type="number" id="woodyGIA" placeholder="150000"></div>
+          <div class="field"><label>Heidi (£)</label><input type="number" id="heidiGIA" placeholder="5000"></div>
+        </div>
+        <div class="two-col" style="margin-top:4px">
+          <div class="field"><label class="muted">Woody cost basis (£)</label><input type="number" id="woodyGIACostBasis" placeholder="= balance if blank"></div>
+          <div class="field"><label class="muted">Heidi cost basis (£)</label><input type="number" id="heidiGIACostBasis" placeholder="= balance if blank"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Withdrawal order (1st → last)</div>
+        <div class="subsection">Woody</div>
+        <div class="order-row">
+          <select id="woodyOrder1"><option value="Cash">Cash</option><option value="QMMF">QMMF</option><option value="GIA">GIA</option><option value="SIPP">SIPP</option><option value="ISA">ISA</option></select>
+          <select id="woodyOrder2"><option value="QMMF">QMMF</option><option value="Cash">Cash</option><option value="GIA">GIA</option><option value="SIPP">SIPP</option><option value="ISA">ISA</option></select>
+          <select id="woodyOrder3"><option value="GIA">GIA</option><option value="Cash">Cash</option><option value="QMMF">QMMF</option><option value="SIPP">SIPP</option><option value="ISA">ISA</option></select>
+          <select id="woodyOrder4"><option value="SIPP">SIPP</option><option value="Cash">Cash</option><option value="QMMF">QMMF</option><option value="GIA">GIA</option><option value="ISA">ISA</option></select>
+          <select id="woodyOrder5"><option value="ISA">ISA</option><option value="Cash">Cash</option><option value="QMMF">QMMF</option><option value="GIA">GIA</option><option value="SIPP">SIPP</option></select>
+        </div>
+        <div class="subsection" style="margin-top:0.5rem">Heidi</div>
+        <div class="order-row">
+          <select id="heidiOrder1"><option value="Cash">Cash</option><option value="GIA">GIA</option><option value="SIPP">SIPP</option><option value="ISA">ISA</option></select>
+          <select id="heidiOrder2"><option value="GIA">GIA</option><option value="Cash">Cash</option><option value="SIPP">SIPP</option><option value="ISA">ISA</option></select>
+          <select id="heidiOrder3"><option value="SIPP">SIPP</option><option value="Cash">Cash</option><option value="GIA">GIA</option><option value="ISA">ISA</option></select>
+          <select id="heidiOrder4"><option value="ISA">ISA</option><option value="Cash">Cash</option><option value="GIA">GIA</option><option value="SIPP">SIPP</option></select>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Growth &amp; inflation</div>
+        <div class="two-col">
+          <div class="field"><label>Portfolio growth (%/yr)</label><input type="number" id="growth" placeholder="6" step="0.1"></div>
+          <div class="field"><label>Inflation (%/yr)</label><input type="number" id="inflation" placeholder="2.5" step="0.1"></div>
+        </div>
+        <div class="field" style="margin-top:6px">
+          <label>Tax threshold uprating</label>
+          <div class="radio-group">
+            <label class="radio-label"><input type="radio" name="thresholdMode" value="frozen" checked> Frozen (fiscal drag)</label>
+            <label class="radio-label">
+              <input type="radio" name="thresholdMode" value="fromYear"> Uprated from year
+              <input type="number" id="thresholdFromYearVal" value="2028" min="2026" max="2060" class="inline-year"
+                onfocus="document.querySelector('input[value=fromYear]').checked=true">
+            </label>
+            <label class="radio-label"><input type="radio" name="thresholdMode" value="always"> Always uprated</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Bed &amp; ISA — annual transfers</div>
+        <div class="bni-toggle">
+          <input type="checkbox" id="bniEnabled">
+          <label for="bniEnabled">Enable bed-and-ISA strategy</label>
+        </div>
+        <div id="bni-fields" hidden>
+          <div class="subsection">Woody</div>
+          <div class="two-col">
+            <div class="field"><label>GIA → ISA (£/yr)</label><input type="number" id="bniWoodyGIA" placeholder="20000" step="1000"></div>
+            <div class="field"><label>QMMF → ISA (£/yr)</label><input type="number" id="bniWoodyQMMF" placeholder="20000" step="1000"></div>
+          </div>
+          <div class="subsection">Heidi</div>
+          <div class="field"><label>GIA → ISA (£/yr)</label><input type="number" id="bniHeidiGIA" placeholder="5000" step="1000"></div>
+        </div>
+      </div>
+
+      <button id="btn-run" class="run-btn">
+        Run projection
+        <span id="run-spinner" hidden class="spinner">⟳</span>
+      </button>
+    </aside>
+
+    <main class="main-area">
+      <div class="controls-bar">
+        <div class="toggle-group person-toggle">
+          <button class="person-btn active" data-person="both">Both</button>
+          <button class="person-btn" data-person="woody">Woody</button>
+          <button class="person-btn" data-person="heidi">Heidi</button>
+        </div>
+        <button id="toggle-real" class="btn-pill">Nominal</button>
+      </div>
+
+      <div id="metrics-tiles" class="metrics-grid"></div>
+      <div id="alerts-container"></div>
+
+      <div class="tabs-bar">
+        <button class="tab-btn" data-tab="charts">Charts</button>
+        <button class="tab-btn" data-tab="tax-table">Tax table</button>
+        <button class="tab-btn" data-tab="asset-table">Assets</button>
+      </div>
+
+      <div id="tab-charts" class="tab-panel" hidden>
+        <div class="chart-card"><h2>Sources of income</h2><div class="chart-wrap"><canvas id="income-chart"></canvas></div></div>
+        <div class="chart-card"><h2>Tax paid &amp; effective rate</h2><div class="chart-wrap"><canvas id="tax-chart"></canvas></div></div>
+        <div class="chart-card"><h2>Wealth by type</h2><div class="chart-wrap"><canvas id="wealth-chart"></canvas></div></div>
+      </div>
+
+      <div id="tab-tax-table" class="tab-panel" hidden>
+        <div class="table-card">
+          <div style="overflow-x:auto">
+            <table class="data-table">
+              <thead><tr>
+                <th>Year</th><th>Ages</th>
+                <th class="num">Spending</th>
+                <th class="num">Woody IT</th><th class="num">Woody CGT</th>
+                <th class="num">B&amp;ISA CGT</th>
+                <th class="num">Heidi IT</th><th class="num">Heidi CGT</th>
+                <th class="num">Total tax</th><th class="num">Cumulative</th>
+                <th class="num">Eff. rate</th>
+              </tr></thead>
+              <tbody id="tax-table-body"></tbody>
+              <tfoot id="tax-table-foot"></tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-asset-table" class="tab-panel" hidden>
+        <div class="table-card">
+          <div style="overflow-x:auto">
+            <table class="data-table">
+              <thead><tr>
+                <th>Year</th><th>Ages</th>
+                <th class="num">W Cash</th><th class="num">W QMMF</th>
+                <th class="num">W GIA</th><th class="num">W SIPP</th><th class="num">W ISA</th>
+                <th class="num">H Cash</th>
+                <th class="num">H GIA</th><th class="num">H SIPP</th><th class="num">H ISA</th>
+                <th class="num total-col">Total (£k)</th>
+              </tr></thead>
+              <tbody id="asset-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="scenario-panel">
+        <div class="section-title">Saved scenarios</div>
+        <div class="scenario-save-row">
+          <input type="text" id="scenario-name-input" placeholder="Scenario name…" class="scenario-name-input">
+          <button id="btn-save-scenario" class="btn-secondary">Save</button>
+        </div>
+        <div id="scenario-list"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script type="module" src="js/app.js"></script>
 </body>
 </html>
